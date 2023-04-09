@@ -1,0 +1,113 @@
+﻿# Test/example program Makefile for the Fast Light Tool Kit (FLTK).
+#
+# Copyright 1998-2021 by Bill Spitzak and others.
+#
+# This library is free software. Distribution and use rights are outlined in
+# the file "COPYING" which should have been included with this file.  If this
+# file is missing or damaged, see the license at:
+#
+#      https://www.fltk.org/COPYING.php
+#
+# Please see the following page on how to report bugs and issues:
+#
+#      https://www.fltk.org/bugs.php
+#
+
+include ../makeinclude
+
+
+CPPFILES =\
+	beat.cxx 
+
+GLALL = \
+	beat$(EXEEXT)
+
+all:	$(GLDEMOS)
+
+gldemos:	$(GLALL)
+
+depend:	$(CPPFILES)
+	makedepend -Y -I.. -f makedepend -w 20 $(CPPFILES)
+	echo "# DO NOT DELETE THIS LINE -- make depend depends on it." > makedepend.tmp
+	echo "" >> makedepend.tmp
+	grep '^[a-zA-Z]' makedepend | ( LC_ALL=C sort -u -f >> makedepend.tmp; )
+	mv makedepend.tmp makedepend
+
+# Automatically generated dependencies...
+include makedepend
+
+clean:
+	$(RM) $(GLALL) core
+
+
+install:	all
+	echo "Installing example programs to $(DESTDIR)$(docdir)/examples..."
+	-$(INSTALL_DIR) $(DESTDIR)$(docdir)/examples
+	for file in *.h *.cxx *.fl demo.menu; do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(docdir)/examples; \
+	done
+	-$(INSTALL_DIR) $(DESTDIR)$(docdir)/examples/pixmaps
+	for file in pixmaps/*.xbm pixmaps/*.xpm; do \
+		$(INSTALL_DATA) $$file $(DESTDIR)$(docdir)/examples/pixmaps; \
+	done
+
+install-linux:
+	echo Installing games to $(DESTDIR)$(bindir)...
+	-$(INSTALL_DIR) $(DESTDIR)$(bindir)
+	-$(INSTALL_DIR) $(DESTDIR)/usr/share/applications
+	-$(INSTALL_DIR) $(DESTDIR)/usr/share/icons/hicolor/32x32/apps
+	-$(INSTALL_DIR) $(DESTDIR)/usr/share/icons/hicolor/128x128/apps
+	for game in blocks checkers sudoku; do \
+		$(INSTALL_BIN) $$game $(DESTDIR)$(bindir); \
+		$(INSTALL_DATA) desktop/$$game.desktop  $(DESTDIR)/usr/share/applications; \
+		$(INSTALL_DATA) desktop/$$game-32.png $(DESTDIR)/usr/share/icons/hicolor/32x32/apps/$$game.png; \
+		$(INSTALL_DATA) desktop/$$game-128.png $(DESTDIR)/usr/share/icons/hicolor/128x128/apps/$$game.png; \
+	done
+
+install-osx:
+	echo Installing games in $(DESTDIR)/Applications...
+	for game in blocks checkers sudoku; do \
+		if test ! -d $(DESTDIR)/Applications/$$game.app; then \
+			$(INSTALL_DIR) $(DESTDIR)/Applications/$$game.app; \
+			$(INSTALL_DIR) $(DESTDIR)/Applications/$$game.app/Contents; \
+			$(INSTALL_DIR) $(DESTDIR)/Applications/$$game.app/Contents/MacOS; \
+			$(INSTALL_DIR) $(DESTDIR)/Applications/$$game.app/Contents/Resources; \
+		fi; \
+		$(INSTALL_DATA) $$game.app/Contents/Info.plist $(DESTDIR)/Applications/$$game.app/Contents; \
+		$(INSTALL_BIN) $$game.app/Contents/MacOS/$$game $(DESTDIR)/Applications/$$game.app/Contents/MacOS; \
+		$(INSTALL_DATA) $$game.app/Contents/Resources/$$game.icns $(DESTDIR)/Applications/$$game.app/Contents/Resources; \
+	done
+
+uninstall:
+	echo "Removing examples programs from $(DESTDIR)$(docdir)/examples..."
+	-$(RMDIR) $(DESTDIR)$(docdir)/examples
+
+uninstall-linux:
+	echo Removing games from $(DESTDIR)$(bindir)...
+	for game in blocks checkers sudoku; do \
+		$(RM) $(DESTDIR)$(bindir)/$$game; \
+		$(RM) $(DESTDIR)/usr/share/applications/$$game.desktop; \
+		$(RM) $(DESTDIR)/usr/share/icons/hicolor/32x32/apps/$$game.png; \
+		$(RM) $(DESTDIR)/usr/share/icons/hicolor/128x128/apps/$$game.png; \
+	done
+
+uninstall-osx:
+	echo Removing games from $(DESTDIR)/Applications...
+	$(RMDIR) $(DESTDIR)/Applications/blocks.app
+	$(RMDIR) $(DESTDIR)/Applications/checkers.app
+	$(RMDIR) $(DESTDIR)/Applications/sudoku.app
+
+# FLUID file rules
+.fl.cxx .fl.h:
+	echo Generating $@ and header from $<...
+	$(FLUID_BUILD) -c $<
+
+
+# All OpenGL demos depend on the FLTK and FLTK_GL libraries...
+$(GLALL): $(LIBNAME) $(GLLIBNAME)
+
+# OpenGL demos...
+beat$(EXEEXT): beat.o
+	echo Linking $@...
+	$(CXX) $(ARCHFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@ beat.o $(LINKFLTKGL) $(LINKFLTK) $(GLDLIBS)
+	$(OSX_ONLY) ../fltk-config --post $@

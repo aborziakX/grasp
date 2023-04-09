@@ -1,0 +1,25 @@
+﻿Windows
+
+Запустить Visual Studio, из меню Средства (Tools), Командная строка, Командная строка разработчика
+выполнить последовательно
+cd c:\
+mkdir fltk-1.4
+git clone https://github.com/fltk/fltk fltk-1.4
+cd fltk-1.4
+mkdir build
+cd build
+cmake ..
+
+При успехе в build будет создано решение fltk.sln
+Открыть его, собрать решение. Будут созданы библиотеки и тесты (около 60) в папке test. Можно запустить demo.exe.
+
+cd c:\
+git clone https://github.com/aborziakX/grasp.git grasp
+cd grasp
+cd beat
+mkdir build
+cd build
+cmake ..
+
+При успехе в build будет создано решение beat.sln
+Открыть его, собрать решение. Будет создан beat.exe
