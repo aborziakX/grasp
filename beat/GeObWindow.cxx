@@ -61,6 +61,7 @@ void GeObWindow::Draw() {
     // обнулить трансформацию
     glLoadIdentity();
     test1();
+    glPushMatrix();
 
     // установить камеру
     double x = vecCam.GetX(), y = vecCam.GetY(), z = vecCam.GetZ();
@@ -84,7 +85,6 @@ void GeObWindow::Draw() {
     glVertex3f(100.0f, 0.0f, -100.0f);
     glEnd();*/
 
-    //glPushMatrix();
     /*glRotatef(float(dRotateZ * 360), 0, 0, 1);
     glRotatef(float(dRotateX * 360), 1, 0, 0);
     glRotatef(float(dRotateY * 360), 0, 1, 0);
@@ -115,18 +115,18 @@ void GeObWindow::Draw() {
         vecGeOb[i]->Draw(vecCamDir);
     }
 
-    //glPopMatrix();
+    glPopMatrix();
 
     // рисовать заголовок
     gl_color(FL_GRAY);
     glDisable(GL_DEPTH_TEST);
     gl_font(FL_HELVETICA_BOLD, 16);
-    gl_draw(wire ? "Cube: wire" : "Cube: flat", 1.2f, 1.2f);
+    gl_draw(wire ? "Cube: wire" : "Cube: flat", -4.5f, -4.5f);
     glEnable(GL_DEPTH_TEST);
 
     // если OpenGL graphics driver установлен, дать ему шанс
     // рисовать виджеты
-    //Fl_Gl_Window::draw();
+    //if(win_glut != NULL) win_glut->display();
 
     int mode = glutGet(GLUT_INIT_DISPLAY_MODE);
     if ((mode & GLUT_DOUBLE) > 0)
@@ -183,7 +183,7 @@ void GeObWindow::SetZCam(float f) {
 }*/
 
 // получить полярные координаты
-void GeObWindow::GetPolar(float& _distance, float& _azimut, float& _elevation)
+void GeObWindow::GetPolar(double& _distance, double& _azimut, double& _elevation)
 {
     _distance = distance;
     _azimut = azimut;
@@ -191,7 +191,7 @@ void GeObWindow::GetPolar(float& _distance, float& _azimut, float& _elevation)
 };
 
 // установить полярные координаты
-void GeObWindow::SetPolar(float _distance, float _azimut, float _elevation)
+void GeObWindow::SetPolar(double _distance, double _azimut, double _elevation)
 {
     distance = _distance;
     azimut = _azimut;
@@ -253,6 +253,42 @@ void GeObWindow::SetPolar(float _distance, float _azimut, float _elevation)
     }
 };
 
+// вычислить полярные координаты по vecCam, vecLook, vecTop
+void GeObWindow::CalcPolar(double& _distance, double& _azimut, double& _elevation)
+{
+    double dx = (vecLook.GetX() - vecCam.GetX());
+    double dy = (vecLook.GetY() - vecCam.GetY());
+    double dz = (vecLook.GetZ() - vecCam.GetZ());
+
+    distance = sqrt(dx * dx + dy * dy + dz * dz);
+    if (distance != 0.0)
+    {
+        if (dx != 0.0 || dy != 0.0)
+        {
+            elevation = -asin(dz / distance);
+            if (dx != 0.0)
+                azimut = atan(dy / dx);
+            else azimut = 0.0;
+        }
+        else
+        {   //на поляную звезду или на юг строго
+            elevation = dz > 0.0 ? MY_PI_HALF : -MY_PI_HALF;
+            azimut = 0.0;
+        }
+    }
+    else
+    {
+        elevation = 0.0;
+        azimut = 0.0;
+    }
+
+    _distance = distance;
+    _azimut = azimut;
+    _elevation = elevation;
+}
+
+// gluLookAt2 метод позиционирования камеры
+// helpers for gluLookAt2
 void normalize(float forward[3])
 {
     float len = sqrt(forward[0] * forward[0] + forward[1] * forward[1] + forward[2] * forward[2]);

@@ -75,13 +75,17 @@ void apply_cb(Fl_Widget *, void *) {
     geob_win->SetXTop(xTop);
     geob_win->SetYTop(yTop);
     geob_win->SetZTop(zTop);
+
+    double distance, azimut, elevation;
+    geob_win->CalcPolar(distance, azimut, elevation);
+    distance += 0.0;
   } catch (...) {
   }
 }
 
 void UpdatePosInfo()
 {
-    float distance, azimut, elevation;
+    double distance, azimut, elevation;
     geob_win->GetPolar(distance, azimut, elevation);
     char buf[33];
     sprintf_s(buf, "%.3f", geob_win->GetXCam());
@@ -134,11 +138,12 @@ void mouseButton(int button, int state, int x, int y)
 void mouseMove(int x, int y) 
 {
     // если левая кнопка опущена
-    if (xOrigin >= 0) {
-        float distance, azimut, elevation;
+    if (xOrigin >= 0)
+    {
+        double distance, azimut, elevation;
         geob_win->GetPolar(distance, azimut, elevation);
         // обновить направления камеры
-        float fraction = 0.001f;
+        double fraction = 0.001;
         azimut -= (x - xOrigin) * fraction;
         elevation -= (y - yOrigin) * fraction;
 
@@ -147,8 +152,12 @@ void mouseMove(int x, int y)
 }
 
 // Функция рисования через помощник 
-void render() {
+void render() 
+{
     geob_win->Draw();
+    // если OpenGL graphics driver установлен, дать ему шанс
+    // рисовать виджеты
+    //glut_win_main->display();
 }
 
 // обработчик для изменения размеров 
@@ -182,10 +191,10 @@ void processSpecialKeys(int key, int xx, int yy) {
     if (key != GLUT_KEY_LEFT && key != GLUT_KEY_RIGHT && key != GLUT_KEY_UP && key != GLUT_KEY_DOWN) 
         return;
 
-    float distance, azimut, elevation;
+    double distance, azimut, elevation;
     geob_win->GetPolar(distance, azimut, elevation);
 
-    float fraction = 0.1f;
+    double fraction = 0.1;
     switch (key) {
     case GLUT_KEY_LEFT:
         azimut += fraction;
@@ -379,11 +388,13 @@ int main7(int argc, char **argv)
   glut_win_main = glut_window;
 
   /*glut_win_main->begin();
-Fl_Widget *w = new Fl_Button(10, 10, 120, 30, "FLTK over GL");
-w->color(FL_FREE_COLOR);
-w->box(FL_BORDER_BOX);
-w->callback(show_info_cb);
-glut_win_main->end();*/
+  Fl_Widget *w = new Fl_Button(10, 10, 120, 30, "FLTK over GL");
+  w->color(FL_FREE_COLOR);
+  w->box(FL_BORDER_BOX);
+  w->callback(show_info_cb);
+  glut_win_main->end();
+
+  geob_win->win_glut = glut_win_main;*/
 
   form->end();
   form->show();

@@ -213,12 +213,18 @@ public:
   /**
   получить полярные координаты
   */
-  void GetPolar(float & _distance, float & _azimut, float & _elevation);
+  void GetPolar(double& _distance, double& _azimut, double& _elevation);
 
   /**
   установить полярные координаты
   */
-  void SetPolar(float _distance, float _azimut, float _elevation);
+  void SetPolar(double _distance, double _azimut, double _elevation);
+
+  /**
+  вычислить полярные координаты по vecCam, vecLook, vecTop
+  */
+  void CalcPolar(double& _distance, double& _azimut, double& _elevation);
+
 
   void gluLookAt2(GLdouble eyex, GLdouble eyey, GLdouble eyez,
       GLdouble centerx, GLdouble centery, GLdouble centerz,
@@ -232,6 +238,7 @@ public:
 
   int wire = 0;
   float lasttime = 0.0, size = 1.0;
+  Fl_Glut_Window* win_glut = NULL;
 
 protected:
   std::vector<GeOb *> vecGeOb; ///< список Геометрических объектов
@@ -243,7 +250,7 @@ private:
   float dRotateZ = 0, dRotateX = 0, dRotateY = 0;
   float dShiftZ = 0, dShiftX = 0, dShiftY = 0;
   //??45
-  float distance = 9.0f, azimut = (3.14f * 45.0f / 180.0f), elevation = (3.14f * 30.0f / 180.0f); ///< камера в полярных координатах (радианы)
+  double distance = 9.0, azimut = (MY_PI * 45.0 / 180.0), elevation = (MY_PI * 30.0 / 180.0); ///< камера в полярных координатах (радианы)
 
 };
 
