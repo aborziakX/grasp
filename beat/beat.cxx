@@ -1,5 +1,5 @@
 ﻿//
-// Hello, Beat! program to study FLTK.
+// Beat - препроцессор для моделирования. Генерирует ini-файл.
 //
 // [program/widget] is based in part on the work of the Fast Light Tool Kit (FLTK) project (https://www.fltk.org)
 //
@@ -19,6 +19,8 @@
 #include <FL/Fl_Menu_Bar.H>
 #include <FL/Fl_Output.H>
 #include <FL/Fl_Multiline_Output.H>
+#include <FL/Fl_Pack.H>
+#include <FL/Fl_Scroll.H>
 
 #include <stdlib.h>
 
@@ -27,38 +29,44 @@
 
 using namespace Grasp;
 
-Fl_Window *form;
-Fl_Glut_Window* glut_win_main = NULL;
-Fl_Slider *slRotX, *slRotY, *slRotZ;
-Fl_Button *btnApply;
-Fl_Input *inXTop, *inYTop, *inZTop, * inXCam, * inYCam, * inZCam;
-Fl_Multiline_Output* text2;
-GeObWindow* geob_win = NULL;
+Fl_Window *form; // главное окно/форма
+Fl_Glut_Window* glut_win_main = NULL; // окно с OpenGl
+Fl_Slider *slRotX, *slRotY, *slRotZ; // слайдеры
+Fl_Button *btnApply; // кнопка
+// ввод текста
+Fl_Input *inXTop, *inYTop, *inZTop, * inXCam, * inYCam, * inZCam, * inXLook, * inYLook, * inZLook;
+Fl_Multiline_Output* text2; // окно вывода текста
+Fl_Pack* pack;
+Fl_Scroll* scroll;
+GeObWindow* geob_win = NULL; // список геометрических объектов
 Cube *cub1, *cub2;
 
-#define MENUBAR_H 25 // menubar height
-#define MARGIN 20    // fixed margin around widgets
+#define MENUBAR_H 25 // высота меню
+#define MARGIN 20    // фиксированный отступ вокруг виджетов
 #define MARGIN2 (MARGIN * 2)
 #define MARGIN3 (MARGIN * 3)
 
-void show_info_cb(Fl_Widget *, void *) {
+// Помощь
+void show_info_cb(Fl_Widget *, void *) 
+{
   // fl_close = "Закрыть";
-  fl_message(u8"Закрыть This is an example of using FLTK widgets inside OpenGL windows.\n"
-             "Multiple widgets can be added to Fl_geob_windows. They will be\n"
-             "rendered as overlays over the scene.");
+  fl_message(u8"Для работы со сценой использует стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
+             "Multiple widgets can be added to Fl_geob_windows.\n"
+             "They will be rendered as overlays over the scene.");
 }
 
 int done = 0; // set to 1 in exit button callback
-int Level = 1;
-int Rebuild = 0;
 
 // exit button callback
-void exit_cb(Fl_Widget *, void *) {
+void exit_cb(Fl_Widget *, void *) 
+{
   done = 1;
 }
 
 // apply button callback
-void apply_cb(Fl_Widget *, void *) {
+void apply_cb(Fl_Widget *, void *) 
+{
+  if (done == 1) return;
   try {
     float xTop = (float)atof(inXTop->value());
     float yTop = (float)atof(inYTop->value());
@@ -68,6 +76,10 @@ void apply_cb(Fl_Widget *, void *) {
     float yCam = (float)atof(inYCam->value());
     float zCam = (float)atof(inZCam->value());
 
+    float xLook = (float)atof(inXLook->value());
+    float yLook = (float)atof(inYLook->value());
+    float zLook = (float)atof(inZLook->value());
+    
     geob_win->SetXCam(xCam);
     geob_win->SetYCam(yCam);
     geob_win->SetZCam(zCam);
@@ -75,6 +87,11 @@ void apply_cb(Fl_Widget *, void *) {
     geob_win->SetXTop(xTop);
     geob_win->SetYTop(yTop);
     geob_win->SetZTop(zTop);
+
+    geob_win->SetXLook(xLook);
+    geob_win->SetYLook(yLook);
+    geob_win->SetZLook(zLook);
+
 
     double distance, azimut, elevation;
     geob_win->CalcPolar(distance, azimut, elevation);
@@ -85,6 +102,7 @@ void apply_cb(Fl_Widget *, void *) {
 
 void UpdatePosInfo()
 {
+    if (done == 1) return;
     double distance, azimut, elevation;
     geob_win->GetPolar(distance, azimut, elevation);
     char buf[33];
@@ -106,6 +124,15 @@ void UpdatePosInfo()
     sprintf_s(buf, "%.3f", geob_win->GetZTop());
     inZTop->value(buf);
 
+    sprintf_s(buf, "%.3f", geob_win->GetXLook());
+    inXLook->value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetYLook());
+    inYLook->value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetZLook());
+    inZLook->value(buf);
+
     geob_win->GetPolar(distance, azimut, elevation);
     sprintf_s(buf, "d=%.3f a=%.3f e=%.3f ", distance, azimut, elevation);
     text2->value(buf);
@@ -116,8 +143,10 @@ void UpdatePosInfo()
 int xOrigin = -1;
 int yOrigin = -1;
 
+// Функция для обработки нажатия мыши
 void mouseButton(int button, int state, int x, int y) 
 {
+    if (done == 1) return;
     // только при начале движения, если нажата левая кнопка
     if (button == GLUT_LEFT_BUTTON) 
     {
@@ -134,9 +163,10 @@ void mouseButton(int button, int state, int x, int y)
     }
 }
 
-// Функцию для обработки движения мыши​ :
+// Функцию для обработки движения мыши​
 void mouseMove(int x, int y) 
 {
+    if (done == 1) return;
     // если левая кнопка опущена
     if (xOrigin >= 0)
     {
@@ -154,6 +184,7 @@ void mouseMove(int x, int y)
 // Функция рисования через помощник 
 void render() 
 {
+    if (done == 1) return;
     geob_win->Draw();
     // если OpenGL graphics driver установлен, дать ему шанс
     // рисовать виджеты
@@ -163,6 +194,7 @@ void render()
 // обработчик для изменения размеров 
 void changeSize(int w, int h)
 {
+    if (done == 1) return;
     // предупредим деление на ноль
     // если окно сильно перетянуто будет
     if (h == 0)
@@ -187,8 +219,10 @@ void changeSize(int w, int h)
 
 //Функция обработки нажатия клавиш перемещения
 //Более естественно, когда по стрелке вправо сцена вращается вправо (против часовой), поэтому азимуи уменьшаем (камера смещаетсч влево)
-void processSpecialKeys(int key, int xx, int yy) {
-    if (key != GLUT_KEY_LEFT && key != GLUT_KEY_RIGHT && key != GLUT_KEY_UP && key != GLUT_KEY_DOWN) 
+void processSpecialKeys(int key, int xx, int yy) 
+{
+    if (done == 1) return;
+    if (key != GLUT_KEY_LEFT && key != GLUT_KEY_RIGHT && key != GLUT_KEY_UP && key != GLUT_KEY_DOWN)
         return;
 
     double distance, azimut, elevation;
@@ -220,57 +254,144 @@ void processSpecialKeys(int key, int xx, int yy) {
 //Функция обработки нажатия обычных клавиш
 void processNormalKeys(unsigned char key, int xx, int yy) 
 {
-    if (key == 27)
+    double distance, azimut, elevation;
+    if (key == 27) //Esc
         exit(0);
+    else if (key == 61) //+
+    {
+        geob_win->GetPolar(distance, azimut, elevation);
+        distance *= 0.9;
+        geob_win->SetPolar(distance, azimut, elevation);
+        UpdatePosInfo();
+        render();
+    }
+    else if (key == 45) //-
+    {
+        geob_win->GetPolar(distance, azimut, elevation);
+        distance *= 1.1;
+        geob_win->SetPolar(distance, azimut, elevation);
+        UpdatePosInfo();
+        render();
+    }
 }
-int gl_w = 350; //GL 3D
-int gl_h = 350;
 
-void makeform7(const char *name) 
+int gl_w = 350; //ширина GL окна
+int gl_h = 350; //высота GL окна
+
+// создать главное окно и виджеты
+void MakeForm(const char *name) 
 {
-  // Widget's XYWH's
-  int ct_grp_w = 350; //controls
-  int rt_grp_w = 50; //for future
+  int ct_grp_w = 450; // ширина области виджетов
+  int rt_grp_w = 10; // для будущего
 
-  int form_w = gl_w + ct_grp_w + rt_grp_w + 4 * MARGIN; // main window width
-  int form_h = gl_h + MENUBAR_H + 2 * MARGIN;                  // main window height
+  int form_w = gl_w + ct_grp_w + rt_grp_w + 4 * MARGIN; // ширина главного окна
+  int form_h = gl_h + MENUBAR_H + 2 * MARGIN;           // высота главного окна
+  // XYWH'меню
   int me_bar_x = 0, 
       me_bar_y = 0, 
       me_bar_w = form_w, 
-      me_bar_h = MENUBAR_H; // menubar
-  int lt_grp_x = 0, 
-      lt_grp_y = MENUBAR_H + MARGIN, 
-      lt_grp_w = gl_w + ct_grp_w + MARGIN3,
-      lt_grp_h = form_h - MENUBAR_H - MARGIN2; // left group
-  int lt_cub_x = lt_grp_x + MARGIN, 
-      lt_cub_y = lt_grp_y, 
-      lt_cub_w = gl_w,
-      lt_cub_h = lt_grp_h; // left cube box (GL)
-  int ct_grp_x = lt_grp_x + gl_w + MARGIN2,
-      ct_grp_y = lt_grp_y, 
-      ct_grp_h = lt_grp_h; // center group
-  int rt_grp_x = lt_grp_x + lt_grp_w, 
-      rt_grp_y = lt_grp_y, 
-      rt_grp_h = lt_grp_h; // right group
+      me_bar_h = MENUBAR_H; 
+  // XYWH'центральная группа
+  int ct_grp_x = gl_w + MARGIN2,
+      ct_grp_y = MENUBAR_H + MARGIN/2,
+      ct_grp_h = form_h - MENUBAR_H - MARGIN; 
+  // XYWH'правая группа
+  int rt_grp_x = ct_grp_x + ct_grp_w, 
+      rt_grp_y = ct_grp_y, 
+      rt_grp_h = ct_grp_h;
+  char buf[33];
 
-  // main window
+  // главное окно
   form = new Fl_Window(form_w, form_h, name);
   form->begin();
-  // menu bar
+
+  // меню
   Fl_Menu_Bar *menubar = new Fl_Menu_Bar(me_bar_x, me_bar_y, me_bar_w, me_bar_h);
   menubar->add(u8"File/Печать", FL_COMMAND + 'p', show_info_cb);
   menubar->add(u8"File/Выход", FL_COMMAND + 'q', exit_cb);
   menubar->add("Edit/Print window2", FL_COMMAND + 'p', show_info_cb);
   menubar->add("Edit/Quit2", FL_COMMAND + 'q', exit_cb);
+  menubar->add("Help", FL_COMMAND + 'h', show_info_cb);
 
-  // center group inside left group
+  // центральная группа
   Fl_Group *ct_grp = new Fl_Group(ct_grp_x, ct_grp_y, ct_grp_w, ct_grp_h);
   ct_grp->begin();
-  //input fields
 
-  btnApply = new Fl_Button(ct_grp_x, form_h - MARGIN - 25, 100, 25, "Apply");
+  //list box объектов
+  scroll = new Fl_Scroll(ct_grp_x + MARGIN, MENUBAR_H + MARGIN, 140, 200);
+  pack = new Fl_Pack(ct_grp_x + MARGIN, MENUBAR_H + MARGIN, 140, 200);
+  pack->box(FL_DOWN_FRAME);
+  int nbuttons = 24;
+  // create buttons: position (xx, xx) will be "fixed" by Fl_Pack/Fl_Flex
+  int xx = 35;
+  for (int i = 0; i < nbuttons; i++) {
+      char ltxt[8];
+      snprintf(ltxt, 8, "b%d", i + 1);
+      Fl_Button* b = new Fl_Button(xx, xx, 25, 25);
+      b->copy_label(ltxt);
+      xx += 10;
+  }
+  pack->end();
+  scroll->end();
+
+  // поля ввода
+  int wiIn = 50, heIn = 20, xIn = 700, yIn = MENUBAR_H + MARGIN;
+  inXCam = new Fl_Input(xIn, yIn, wiIn, heIn, "xCam:");
+  inXCam->tooltip("XCam input field");
+  sprintf_s(buf, "%.3f", geob_win->GetXCam());
+  inXCam->value(buf);
+
+  inYCam = new Fl_Input(xIn, yIn + (MARGIN + heIn), wiIn, heIn, "yCam:");
+  inYCam->tooltip("YCam input field");
+  sprintf_s(buf, "%.3f", geob_win->GetYCam());
+  inYCam->value(buf);
+
+  inZCam = new Fl_Input(xIn, yIn + 2*(MARGIN + heIn), wiIn, heIn, "zCam:");
+  inZCam->tooltip("ZCam input field");
+  sprintf_s(buf, "%.3f", geob_win->GetZCam());
+  inZCam->value(buf);
+
+  inXTop = new Fl_Input(xIn, yIn + 3*(MARGIN + heIn), wiIn, heIn, "xTop:");
+  inXTop->tooltip("XTop input field");
+  sprintf_s(buf, "%.3f", geob_win->GetXTop());
+  inXTop->value(buf);
+
+  inYTop = new Fl_Input(xIn, yIn + 4*(MARGIN + heIn), wiIn, heIn, "yTop:");
+  inYTop->tooltip("ZTop input field");
+  sprintf_s(buf, "%.3f", geob_win->GetYTop());
+  inYTop->value(buf);
+
+  inZTop = new Fl_Input(xIn, yIn + 5*(MARGIN + heIn), wiIn, heIn, "zTop:");
+  inZTop->tooltip("ZTop input field");
+  sprintf_s(buf, "%.3f", geob_win->GetZTop());
+  inZTop->value(buf);
+
+  inXLook = new Fl_Input(xIn, yIn + 6 * (MARGIN + heIn), wiIn, heIn, "xLook:");
+  inXLook->tooltip("XLook input field");
+  sprintf_s(buf, "%.3f", geob_win->GetXLook());
+  inXLook->value(buf);
+
+  inYLook = new Fl_Input(xIn, yIn + 7 * (MARGIN + heIn), wiIn, heIn, "yLook:");
+  inYLook->tooltip("YLook input field");
+  sprintf_s(buf, "%.3f", geob_win->GetYLook());
+  inYLook->value(buf);
+
+  inZLook = new Fl_Input(xIn, yIn + 8 * (MARGIN + heIn), wiIn, heIn, "zLook:");
+  inZLook->tooltip("ZLook input field");
+  sprintf_s(buf, "%.3f", geob_win->GetZLook());
+  inZLook->value(buf);
+
+
+  text2 = new Fl_Multiline_Output(ct_grp_x + MARGIN, 250, 200, 100, u8"расстояние, азимут, возвышение");
+  text2->value("");
+  text2->align(FL_ALIGN_BOTTOM);
+  text2->tooltip("Fl_Multiline_Output widget.");
+
+  btnApply = new Fl_Button(ct_grp_x + MARGIN, form_h - MARGIN - 25, 100, 25, u8"Применить");
   btnApply->callback(apply_cb);
+
   ct_grp->end();
+  ct_grp->box(FL_BORDER_BOX);
   //ct_grp->resizable(slRotX); // only sliders resize vertically, not buttons
   
   // right resizer
@@ -282,47 +403,41 @@ void makeform7(const char *name)
   form->size_range(form->w(), form->h()); // minimum window size
 }
 
-void setlevel(int value)
+// создаем главное Fl_Glut_Window* glut_win_main
+void MakeGlWindow(bool bDouble)
 {
-    Level = value;
-    Rebuild = 1;
-    glutPostRedisplay();
+    form->begin();
+
+    unsigned int mode = GLUT_DEPTH | GLUT_RGBA | GLUT_MULTISAMPLE;
+    if (bDouble) mode |= GLUT_DOUBLE;
+    glutInitDisplayMode(mode);
+    glutInitWindowPosition(MARGIN, MENUBAR_H + MARGIN);
+    glutInitWindowSize(gl_w, gl_h);
+    glutCreateWindow("Glut Window");
+    glut_win_main = glut_window;
+
+    /*glut_win_main->begin();
+    Fl_Widget *w = new Fl_Button(10, 10, 120, 30, "FLTK over GL");
+    w->color(FL_FREE_COLOR);
+    w->box(FL_BORDER_BOX);
+    w->callback(show_info_cb);
+    glut_win_main->end();
+
+    geob_win->win_glut = glut_win_main;*/
+
+    form->end();
+    form->resizable(glut_win_main);
+
+    // устанавливаем для него обработчики
+    glutReshapeFunc(changeSize);
+    glutKeyboardFunc(processNormalKeys);
+    glutSpecialFunc(processSpecialKeys);
+    glutMouseFunc(mouseButton);
+    glutMotionFunc(mouseMove);
+    glutDisplayFunc(render);
 }
 
-void MenuInit(void)
-{
-    int submenu3, submenu2, submenu1;
-
-    submenu1 = glutCreateMenu(setlevel);
-    glutAddMenuEntry((char*)"0", 0);  glutAddMenuEntry((char*)"1", 1);
-    glutAddMenuEntry((char*)"2", 2);  glutAddMenuEntry((char*)"3", 3);
-    glutAddMenuEntry((char*)"4", 4);  glutAddMenuEntry((char*)"5", 5);
-    glutAddMenuEntry((char*)"6", 6);  glutAddMenuEntry((char*)"7", 7);
-    glutAddMenuEntry((char*)"8", 8);
-
-    /*submenu2 = glutCreateMenu(choosefract);
-    glutAddMenuEntry((char*)"Moutain", MOUNTAIN);
-    glutAddMenuEntry((char*)"Tree", TREE);
-    glutAddMenuEntry((char*)"Island", ISLAND);
-
-    submenu3 = glutCreateMenu(agvSwitchMoveMode);
-    glutAddMenuEntry((char*)"Flying", FLYING);
-    glutAddMenuEntry((char*)"Polar", POLAR);
-
-    glutCreateMenu(handlemenu);
-    glutAddSubMenu((char*)"Level", submenu1);
-    glutAddSubMenu((char*)"Fractal", submenu2);
-    glutAddSubMenu((char*)"Movement", submenu3);
-    glutAddMenuEntry((char*)"New Fractal", MENU_RAND);
-    glutAddMenuEntry((char*)"Toggle Axes", MENU_AXES);
-    glutAddMenuEntry((char*)"Quit", MENU_QUIT);*/
-    glutAttachMenu(GLUT_RIGHT_BUTTON);
-}
-
-// FLTK-style callbacks to Glut menu callback translators:
-void setlevel(Fl_Widget*, void* value) { setlevel(fl_int(value)); }
-
-int main7(int argc, char **argv) 
+int main(int argc, char **argv) 
 {
   Fl::use_high_res_GL(1);
   Fl::set_color(FL_FREE_COLOR, 255, 255, 0, 75);
@@ -331,83 +446,20 @@ int main7(int argc, char **argv)
   {
       if (strcmp(argv[k], "-double") == 0) bDouble = true;
   }
-
   glutInit(&argc, const_cast<char**>(argv));
 
-  // helper
+  // создаем Хранилище геометрических объектов
   geob_win = new GeObWindow();
-  char buf[33];
 
-  // main window
-  makeform7(argv[0]);
-
-  form->begin();
-
-  inXCam = new Fl_Input(700, MENUBAR_H + MARGIN, 50, 20, "xCam:");
-  inXCam->tooltip("XCam input field");
-  sprintf_s(buf, "%.3f", geob_win->GetXCam());
-  inXCam->value(buf);
-
-  inYCam = new Fl_Input(700, MENUBAR_H + 3*MARGIN + inXCam->h(), 50, 20, "yCam:");
-  inYCam->tooltip("YCam input field");
-  sprintf_s(buf, "%.3f", geob_win->GetYCam());
-  inYCam->value(buf);
-
-  inZCam = new Fl_Input(700, MENUBAR_H + 5 * MARGIN + inXCam->h() + inYCam->h(), 50, 20, "zCam:");
-  inZCam->tooltip("ZCam input field");
-  sprintf_s(buf, "%.3f", geob_win->GetZCam());
-  inZCam->value(buf);
-
-  inXTop = new Fl_Input(700, MENUBAR_H + 7 * MARGIN + inXCam->h() + 2*inYCam->h(), 50, 20, "xTop:");
-  inXTop->tooltip("XTop input field");
-  sprintf_s(buf, "%.3f", geob_win->GetXTop());
-  inXTop->value(buf);
-
-  inYTop = new Fl_Input(700, MENUBAR_H + 9 * MARGIN + inXCam->h() + 3*inYCam->h(), 50, 20, "yTop:");
-  inYTop->tooltip("ZTop input field");
-  sprintf_s(buf, "%.3f", geob_win->GetYTop());
-  inYTop->value(buf);
-
-  inZTop = new Fl_Input(700, MENUBAR_H + 11 * MARGIN + inXCam->h() + 4*inYCam->h(), 50, 20, "zTop:");
-  inZTop->tooltip("ZTop input field");
-  sprintf_s(buf, "%.3f", geob_win->GetZTop());
-  inZTop->value(buf);
-
-  text2 = new Fl_Multiline_Output(450, 150, 200, 100, u8"расстояние, азимут, возвышение");
-  text2->value("");
-  text2->align(FL_ALIGN_BOTTOM);
-  text2->tooltip("Fl_Multiline_Output widget.");
+  // создаем главное окно и виджеты
+  MakeForm(argv[0]);
 
   // создаем главное Fl_Glut_Window* glut_win_main
-  unsigned int mode = GLUT_DEPTH | GLUT_RGBA | GLUT_MULTISAMPLE;
-  if (bDouble) mode |= GLUT_DOUBLE;
-  glutInitDisplayMode(mode);
-  glutInitWindowPosition(MARGIN, MENUBAR_H + MARGIN);
-  glutInitWindowSize(gl_w, gl_h);
-  glutCreateWindow("Glut Window");
-  glut_win_main = glut_window;
+  MakeGlWindow(bDouble);
 
-  /*glut_win_main->begin();
-  Fl_Widget *w = new Fl_Button(10, 10, 120, 30, "FLTK over GL");
-  w->color(FL_FREE_COLOR);
-  w->box(FL_BORDER_BOX);
-  w->callback(show_info_cb);
-  glut_win_main->end();
-
-  geob_win->win_glut = glut_win_main;*/
-
-  form->end();
   form->show();
 
-  // устанавливаем для него обработчики
-  glutReshapeFunc(changeSize);
-  glutKeyboardFunc(processNormalKeys);
-  glutSpecialFunc(processSpecialKeys);
-  glutMouseFunc(mouseButton);
-  glutMotionFunc(mouseMove);
-  glutDisplayFunc(render);
-
-  // Геометрические объекты
+  // создать Геометрические объекты
   cub1 = new Cube();
   cub1->Translate(1.0f, 0.0f, 0.0f);
   geob_win->Add(cub1);
@@ -424,44 +476,40 @@ int main7(int argc, char **argv)
   cub2->Transform();
   cub2->Translate(-1.5, 0, 0);
 
-
-  //glutMenuStateFunc(menuuse);
-  //MenuInit();
-
-  //glutMainLoop();
-  for (;;) {
-    if (form->visible()) {
+  //аналог glutMainLoop(); или Fl::run
+  for (;;) 
+  {
+    if (form->visible()) 
+    { //проверить статус
       if (!Fl::check())
-        break; // returns immediately
-    } else {
+        break; // выход немедленно
+    } 
+    else 
+    { // ждать событий
       if (!Fl::wait())
-        break; // waits until something happens
+        break;
     }
 
     //geob_win->SetRotateX((float)slRotX->value());
     //geob_win->SetRotateY((float)slRotY->value());
     //geob_win->SetRotateZ((float)slRotZ->value());
     //geob_win->Draw();
+
     render();
 
     if (done)
-      break; // exit button was clicked
+      break; // 'exit button' была нажата
 
-    Fl::wait(0.01); //in seconds
+    Fl::wait(0.01); // заснуть в секундах
   }
-  //delete main window and all its children
+
+  // удалить главное окно и виджеты
   delete form;
+  // удалить Хранилище
   delete geob_win;
   return 0;
 }
 //==
 
-int main(int argc, char** argv)
-{
-    int rc = 0;
-    Fl::scheme("gtk+");
-    rc = main7(argc, argv);
-    return rc;
-}
 
 

@@ -6,6 +6,8 @@
 using namespace std;
 
 namespace Grasp {
+    int Facet3::counter = 0;
+    int GeOb::counter = 0;
 
 GeOb::~GeOb() {
   lasttime = 0.0;

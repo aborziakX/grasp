@@ -205,6 +205,7 @@ void GeObWindow::SetPolar(double _distance, double _azimut, double _elevation)
     // найти vecCam (позиция камеры) и  vecTop (вертикальный вектор камеры)
     // vecLook (камера смотрит сюда) не меняется
 
+    // в уме сдвинем vecLook в начало координат
     // Z на поляную звезду (север), X - экватор нулевой меридиан, Y = Z prod X
     double x = distance, y = 0.0, z = 0.0;
 
@@ -220,6 +221,15 @@ void GeObWindow::SetPolar(double _distance, double _azimut, double _elevation)
 
     vecCam.Copy(x2, y2, z2);
 
+    Vec3 v2, vNorm;
+    v2.Copy(x2, y2, 0); // на экваторе
+
+    /*if (!vecLook.IsZero())
+    {   // сдвиг на vecLook обратно
+        vecCam.Add(vecLook);
+        v2.Add(vecLook);
+    }*/
+
     // найти vecTop
     if (z2 == 0)
     {
@@ -227,27 +237,23 @@ void GeObWindow::SetPolar(double _distance, double _azimut, double _elevation)
     }
     else
     {
-        Vec3 v2, vNorm;
-        v2.Copy(x2, y2, 0); // на экваторе
         Vec3::Product(v2, vecCam, vNorm); // нормаль к поскости элевации
         if( (elevation > 0.0 && elevation < MY_PI_HALF) || (elevation > MY_PI && elevation < MY_PI_15) )
             Vec3::Product(vNorm, vecCam, vecTop);
         else Vec3::Product(vecCam, vNorm, vecTop); //обратный порядок, чтоб камера смотрела вверх
     }
 
-    /* TODO
+    double sc = vecCam.ScalarProduct(vecTop);
     if (!vecLook.IsZero())
-    {   // сдвиг на vecLook //??
-        vecCam.Sub(vecLook);
-        vecTop.Sub(vecLook);
-    }*/
+    {   // сдвиг на vecLook обратно
+        vecCam.Add(vecLook);
+    }
 
     vecTop.Normalize();
 
     //test
-    double ln = vecCam.Length();
-    double sc = vecCam.ScalarProduct(vecTop);
-    if (abs(ln - distance) > 0.01 || abs(sc) > 0.01 )
+    double di = vecCam.Distance(vecLook);
+    if (abs(di - distance) > 0.01 || abs(sc) > 0.01 )
     {
         int k = 0;
     }
@@ -326,7 +332,6 @@ void __gluMakeIdentityf(GLfloat * m)
     m[13] = 0.0f;
     m[14] = 0.0f;
     m[15] = 1.0f;
-
 }
 
 //from http://www.mesa3d.org

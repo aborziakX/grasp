@@ -17,9 +17,18 @@ namespace Grasp {
 */
 class Facet3 {
 public:
-  Facet3() {}
+  Facet3() {
+      fc_id = counter++;
+  }
 
   ~Facet3() { Clear(); }
+
+  /**
+  вернуть индекс
+  */
+  int GetIndex() {
+      return fc_id;
+  }
 
   /**
   добавить Vec3 в грань
@@ -121,6 +130,9 @@ private:
   std::vector<Vec3 *> vecPoint; ///< список точек
   bool bOwnColor = false; ///< признак, что у грани собственный цвет
   unsigned char red = 0, green = 255, blue = 0; ///< каналы цвета
+
+   int fc_id;  ///< индекс
+   static int counter;
 };
 
 /// <summary>
@@ -132,11 +144,20 @@ public:
   Конструктор GeOb
   */
   GeOb() {
+    ge_id = counter++;
     lasttime = 0.0;
     Init();
   }
 
   ~GeOb();
+
+  /**
+  вернуть индекс
+  */
+  int GetIndex() {
+      return ge_id;
+  }
+
 
   /**
   очистить грани
@@ -221,6 +242,9 @@ private:
   int wire = 0;
 
   bool bNeedTransf = true;
+
+  int ge_id;  ///< индекс
+  static int counter;
 };
 
 } // namespace Grasp
