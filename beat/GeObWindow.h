@@ -225,15 +225,15 @@ public:
   */
   void CalcPolar(double& _distance, double& _azimut, double& _elevation);
 
-
+  //from http://www.mesa3d.org
   void gluLookAt2(GLdouble eyex, GLdouble eyey, GLdouble eyez,
       GLdouble centerx, GLdouble centery, GLdouble centerz,
       GLdouble upx, GLdouble upy, GLdouble upz);
 
   /**
-  add GeOb to window
+  добавить GeOb в список
   */
-  void Add(GeOb * cube) { vecGeOb.push_back(cube); }
+  void Add(GeOb* cube);
 
 
   int wire = 0;
@@ -242,6 +242,9 @@ public:
 
 protected:
   std::vector<GeOb *> vecGeOb; ///< список Геометрических объектов
+
+  std::vector<Facet3*> vecFacet; ///< список граней
+
   Vec3 vecCam; ///< позиция камеры
   Vec3 vecLook; ///< камера смотрит сюда
   Vec3 vecTop; ///< вертикальный вектор камеры
@@ -252,6 +255,8 @@ private:
   //??45
   double distance = 9.0, azimut = (MY_PI * 45.0 / 180.0), elevation = (MY_PI * 30.0 / 180.0); ///< камера в полярных координатах (радианы)
 
+  bool bResort;
+  void ResortFacet(Vec3& vecCam, Vec3& vecCamDir);
 };
 
 } // namespace Grasp

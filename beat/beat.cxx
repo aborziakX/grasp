@@ -463,14 +463,18 @@ int main(int argc, char **argv)
   cub1 = new Cube();
   cub1->Translate(1.0f, 0.0f, 0.0f);
   geob_win->Add(cub1);
-  Facet3 *fac = cub1->GetFacet(0);
+  Facet3 *fac = cub1->GetFacet(0); //задняя
   if (fac != NULL) {
     fac->SetColor(255, 0, 0);
+  }
+  fac = cub1->GetFacet(1); //передняя
+  if (fac != NULL) {
+      fac->SetColor(0, 255, 255);
   }
 
   cub2 = new Cube();
   geob_win->Add(cub2);
-  Facet3 *fac2 = cub2->GetFacet(0);
+  Facet3 *fac2 = cub2->GetFacet(0); //задняя
   if (fac2 != NULL)
     fac2->SetColor(0, 0, 255);
   cub2->Transform();

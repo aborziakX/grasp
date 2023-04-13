@@ -22,6 +22,20 @@ GeObWindow::~GeObWindow()
   }
 }
 
+// добавить GeOb в список
+void GeObWindow::Add(GeOb* cube)
+{ 
+    vecGeOb.push_back(cube);
+    for (int i = 0; i < cube->GetSize(); i++)
+    {
+        Facet3 * fac = cube->GetFacet(i);
+        if( fac != NULL )
+            vecFacet.push_back(fac);
+    }
+    bResort = true;
+}
+
+
 /*// курсор
 int GeObWindow::handle(int e) {
   switch (e) {
@@ -109,10 +123,10 @@ void GeObWindow::Draw() {
     glEnd();
 
     // рисовать все GeOb здесь
-    for (int i = 0; i < vecGeOb.size(); i++) {
-        if (vecGeOb[i] == NULL)
-            continue;
-        vecGeOb[i]->Draw(vecCamDir);
+    ResortFacet(vecCam, vecCamDir);
+    for (int i = 0; i < vecFacet.size(); i++) {
+        Facet3 * f = vecFacet[i];
+        f->Draw(vecCamDir);
     }
 
     glPopMatrix();
@@ -224,12 +238,6 @@ void GeObWindow::SetPolar(double _distance, double _azimut, double _elevation)
     Vec3 v2, vNorm;
     v2.Copy(x2, y2, 0); // на экваторе
 
-    /*if (!vecLook.IsZero())
-    {   // сдвиг на vecLook обратно
-        vecCam.Add(vecLook);
-        v2.Add(vecLook);
-    }*/
-
     // найти vecTop
     if (z2 == 0)
     {
@@ -257,6 +265,7 @@ void GeObWindow::SetPolar(double _distance, double _azimut, double _elevation)
     {
         int k = 0;
     }
+    bResort = true;
 };
 
 // вычислить полярные координаты по vecCam, vecLook, vecTop
@@ -291,6 +300,46 @@ void GeObWindow::CalcPolar(double& _distance, double& _azimut, double& _elevatio
     _distance = distance;
     _azimut = azimut;
     _elevation = elevation;
+    bResort = true;
+}
+
+// пересортировать список граней
+void GeObWindow::ResortFacet(Vec3& vecCam, Vec3& vecCamDir)
+{
+    if (!bResort) return;
+    Vec3 vec;
+    for (int i = 0; i < vecFacet.size(); i++)
+    {
+        Facet3* f = vecFacet[i];
+        //if (f == NULL) continue;
+        f->CalcCenter();
+
+        vec.Copy(f->vCenter);
+        vec.Sub(vecCam);
+
+        double d = vec.ScalarProduct(vecCamDir);
+        f->temp = d;
+    }
+    // сортировка "поплавком", O(n*n)
+    bool bDone = false;
+    while (!bDone)
+    {
+        bDone = true;
+        for (int i = 0; i < vecFacet.size() - 1; i++)
+        {
+            Facet3* f = vecFacet[i];
+            Facet3* f2 = vecFacet[i + 1];
+            if (f->temp > f2->temp)
+            {   // поменять позиции
+                bDone = false;
+                Facet3* tmp = f;
+                vecFacet[i] = f2;
+                vecFacet[i + 1] = tmp;
+            }
+        }
+    }
+
+    bResort = false;
 }
 
 // gluLookAt2 метод позиционирования камеры
@@ -342,10 +391,12 @@ void GeObWindow::gluLookAt2(GLdouble eyex, GLdouble eyey, GLdouble eyez,
     float forward[3], side[3], up[3];
     GLfloat m[4][4];
 
+    // вектор смотим на центр, новый -Z
     forward[0] = (float)(centerx - eyex);
     forward[1] = (float)(centery - eyey);
     forward[2] = (float)(centerz - eyez);
 
+    // вектор камера вверх, новый Y
     up[0] = (float)upx;
     up[1] = (float)upy;
     up[2] = (float)upz;
@@ -353,6 +404,7 @@ void GeObWindow::gluLookAt2(GLdouble eyex, GLdouble eyey, GLdouble eyez,
     normalize(forward);
     
     // Side = forward x up 
+    // вектор вбок, новый X
     cross(forward, up, side);
     normalize(side);
 
@@ -372,7 +424,13 @@ void GeObWindow::gluLookAt2(GLdouble eyex, GLdouble eyey, GLdouble eyez,
     m[1][2] = -forward[1];
     m[2][2] = -forward[2];
 
+    // новая матрица поворота
     glMultMatrixf(&m[0][0]);
+    // старый X * Mat = новый X = side
+    // старый Y * Mat = новый Y = up
+    // старый Z * Mat = новый Z = -forward
+
+    // финальный сдвиг на точку глаза
     glTranslated(-eyex, -eyey, -eyez);
 }
 

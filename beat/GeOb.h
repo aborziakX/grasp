@@ -58,16 +58,7 @@ public:
   }
 
   /**
-  get bOwnColor
-  */
-  bool GetOwnColor() { return bOwnColor; }
-  /**
-  set bOwnColor
-  */
-  void SetOwnColor(bool _bOwnColor) { bOwnColor = _bOwnColor; }
-
-  /**
-  get каналы цвета
+  получить каналы цвета
   */
   void GetColor(unsigned char& _red, unsigned char& _green, unsigned char& _blue) {
     _red = red;
@@ -75,13 +66,12 @@ public:
     _blue = blue;
   }
   /**
-  set каналы цвета
+  установить каналы цвета
   */
   void SetColor(unsigned char _red, unsigned char _green, unsigned char _blue) {
     red = _red;
     green = _green;
     blue = _blue;
-    bOwnColor = true;
   }
 
   Vec3 vCenter; ///< центр
@@ -126,13 +116,19 @@ public:
     vNorm.Normalize();
   }
 
+  /**
+  рисуем
+  */
+  void Draw(Vec3& vecCamDir, int wire = 0);
+
+  double temp;
+
 private:
   std::vector<Vec3 *> vecPoint; ///< список точек
-  bool bOwnColor = false; ///< признак, что у грани собственный цвет
   unsigned char red = 0, green = 255, blue = 0; ///< каналы цвета
 
-   int fc_id;  ///< индекс
-   static int counter;
+  int fc_id;  ///< индекс
+  static int counter;
 };
 
 /// <summary>
@@ -180,32 +176,46 @@ public:
   /**
   рисуем GeOb в Fl_Gl_Window
   */
-  void Draw(Vec3 & vecCam);
+  void Draw(Vec3 & vecCamDir);
 
   /**
-  get dRotateZ
+  получить dRotateZ
   */
   double GetRotateZ() { return dRotateZ; }
   /**
-  set dRotateZ
+  установить dRotateZ
   */
   void SetRotateZ(double _dRotateZ) { dRotateZ = _dRotateZ; }
 
   /**
-  get каналы цвета
+  получить каналы цвета
   */
   void GetColor(unsigned char &_red, unsigned char &_green, unsigned char &_blue) {
     _red = red;
     _green = green;
     _blue = blue;
   }
+
   /**
-  set каналы цвета
+  установить каналы цвета
   */
   void SetColor(unsigned char _red, unsigned char _green, unsigned char _blue) {
     red = _red;
     green = _green;
     blue = _blue;
+
+    for (int i = 0; i < vecFacet.size(); i++) {
+        if (vecFacet[i] == NULL)
+            continue;
+        vecFacet[i]->SetColor(red, green, blue);
+    }
+  }
+
+  /**
+  вернуть число граней
+  */
+  size_t GetSize() {
+      return vecFacet.size();
   }
 
   /**
@@ -231,7 +241,7 @@ public:
   float lasttime = 0.0, fsize = 1.0;
 
 protected:
-  std::vector<Facet3 *> vecFacet; // список граней
+  std::vector<Facet3 *> vecFacet; ///< список граней
 
 private:
   double dRotateZ = 0, dRotateX = 0, dRotateY = 0;
