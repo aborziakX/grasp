@@ -11,6 +11,8 @@
 
 namespace Grasp {
 
+    class GeOb;
+
 /**
 @class   Facet3
 @brief   грань из нескольких точек
@@ -19,6 +21,7 @@ class Facet3 {
 public:
   Facet3() {
       fc_id = counter++;
+      temp = 0.0;
   }
 
   ~Facet3() { Clear(); }
@@ -74,61 +77,80 @@ public:
     blue = _blue;
   }
 
-  Vec3 vCenter; ///< центр
-  Vec3 vNorm; ///< нормаль
-
   /**
-  вычислить центр
+  вычислить центр и нормаль
   */
-  void CalcCenter() {
-    vCenter.Copy(0, 0, 0);
-    if (vecPoint.size() == 0)
-      return;
-    for (int i = 0; i < vecPoint.size(); i++) {
-      Vec3 *v = vecPoint[i];
-      if (v == NULL)
-        continue;
-      vCenter.Add(v->GetX(), v->GetY(), v->GetZ());
-    }
-    vCenter.Scale(1.0 / vecPoint.size());
-  }
-
-  /**
-  вычислить нормаль
-  */
-  void CalcNormal() {
-    vNorm.Copy(0, 0, 0);
-    if (vecPoint.size() < 3)
-      return;
-    Vec3 *v1 = vecPoint[0];
-    Vec3 *v2 = vecPoint[1];
-    Vec3 *v3 = vecPoint[2];
-
-    Vec3 tvec1(*v2);
-    tvec1.Add(-v1->GetX(), -v1->GetY(),
-              -v1->GetZ()); // C# new Vec3(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
-
-    Vec3 tvec2(*v3);
-    tvec2.Add(-v1->GetX(), -v1->GetY(),
-              -v1->GetZ()); // C# new Vec3(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
-
-    Vec3::Product(tvec1, tvec2, vNorm);
-    vNorm.Normalize();
+  void CalcCenterNormal() {
+      if (bCalcDone) return;
+      CalcCenter();
+      CalcNormal();
+      bCalcDone = true;
   }
 
   /**
   рисуем
   */
-  void Draw(Vec3& vecCamDir, int wire = 0);
+  void Draw(Vec3& vecCamDir, bool wire = true, bool norm = true);
 
-  double temp;
+  /**
+  получить 'нормаль пересчитана'
+  */
+  bool GetCalcDone() {
+      return bCalcDone;
+  }
+
+  /**
+  установить 'нормаль пересчитана'
+  */
+  void SetCalcDone(bool b) {
+      bCalcDone = b;
+  }
+
+  /**
+  получить центр
+  */
+  void GetCenter(Vec3& _vCenter) { _vCenter.Copy(vCenter); }
+
+  /**
+  получить нормаль
+  */
+  void GetNormal(Vec3& _vNorm) { _vNorm.Copy(vNorm); }
+
+  /**
+получить собственника
+*/
+  GeOb* GetOwner() {
+      return owner;
+  }
+
+  /**
+  установить собственника
+  */
+  void SetOwner(GeOb* b) {
+      owner = b;
+  }
+
+  double temp; ///< временная переменная
 
 private:
   std::vector<Vec3 *> vecPoint; ///< список точек
   unsigned char red = 0, green = 255, blue = 0; ///< каналы цвета
-
+  GeOb* owner = NULL; ///< собственник
+  Vec3 vCenter; ///< центр
+  Vec3 vNorm; ///< нормаль
+  bool bCalcDone = false; ///< true=нормаль пересчитана
   int fc_id;  ///< индекс
-  static int counter;
+  static int counter; ///< счетчик
+
+  /**
+  вычислить центр
+  */
+  void CalcCenter();
+
+  /**
+  вычислить нормаль
+  */
+  void CalcNormal();
 };
 
 /// <summary>
@@ -154,7 +176,6 @@ public:
       return ge_id;
   }
 
-
   /**
   очистить грани
   */
@@ -171,7 +192,15 @@ public:
   /**
   создание граней
   */
-  virtual void Init() {}
+  virtual void Init() {
+      dShiftX = 0; dShiftY = 0; dShiftZ = 0;
+      Clear();
+  }
+
+  /**
+  название
+  */
+  virtual void GetName(char buf[33]) {}
 
   /**
   рисуем GeOb в Fl_Gl_Window
@@ -179,13 +208,13 @@ public:
   void Draw(Vec3 & vecCamDir);
 
   /**
-  получить dRotateZ
+  получить сдвиги
   */
-  double GetRotateZ() { return dRotateZ; }
-  /**
-  установить dRotateZ
-  */
-  void SetRotateZ(double _dRotateZ) { dRotateZ = _dRotateZ; }
+  void GetShift(double & _dShiftX, double& _dShiftY, double& _dShiftZ) {
+      _dShiftX = dShiftX;
+      _dShiftY = dShiftY;
+      _dShiftZ = dShiftZ;
+  }
 
   /**
   получить каналы цвета
@@ -233,28 +262,33 @@ public:
   void Translate(double dx, double dy, double dz);
 
   /**
+  масштабировать точки
+  */
+  void Scale(double dx, double dy, double dz);
+
+  /**
   Transform GeOb
   */
   void Transform() { Init(); }
 
-
-  float lasttime = 0.0, fsize = 1.0;
+  float lasttime = 0.0, diameter = 1.0;
+  bool bWire = false; ///< true=только ребра
+  bool bNormal = false; ///< true=рисовать нормали
+  bool bSelect = false; ///< true=рисовать куб вокруг
 
 protected:
   std::vector<Facet3 *> vecFacet; ///< список граней
 
 private:
-  double dRotateZ = 0, dRotateX = 0, dRotateY = 0;
-  double dShiftZ = 0, dShiftX = 0, dShiftY = 0;
+  double dRotateX = 0, dRotateY = 0, dRotateZ = 0;
+  double dShiftX = 0, dShiftY = 0, dShiftZ = 0; ///< накапливаемый сдвиг
 
   unsigned char red = 0, green = 255, blue = 0; ///< каналы цвета
-
-  int wire = 0;
 
   bool bNeedTransf = true;
 
   int ge_id;  ///< индекс
-  static int counter;
+  static int counter; ///< счетчик
 };
 
 } // namespace Grasp

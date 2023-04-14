@@ -165,6 +165,15 @@ public:
     }
 
     /**
+    масштабирование по 3-м параметрам
+    */
+    void Scale3(double p1, double p2, double p3) {
+        x *= p1;
+        y *= p2;
+        z *= p3;
+    }
+
+    /**
     проверка на нулевой вектор
     */
     bool IsZero() {

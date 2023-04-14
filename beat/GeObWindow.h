@@ -235,6 +235,24 @@ public:
   */
   void Add(GeOb* cube);
 
+  /**
+  вернуть число элементов в vecGeOb
+  */
+  int GetSize() { return vecGeOb.size(); }
+
+  /**
+  вернуть GeOb по индексу
+  */
+  GeOb* GetObj(int index) {
+      int sz = vecGeOb.size();
+      if( index >= sz || index < 0 ) return NULL;
+      return vecGeOb[index];
+  }
+
+  /**
+  удалить GeOb из списока
+  */
+  void Delete(GeOb* cube);
 
   int wire = 0;
   float lasttime = 0.0, size = 1.0;

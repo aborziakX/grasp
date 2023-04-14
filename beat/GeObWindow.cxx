@@ -126,21 +126,32 @@ void GeObWindow::Draw() {
     ResortFacet(vecCam, vecCamDir);
     for (int i = 0; i < vecFacet.size(); i++) {
         Facet3 * f = vecFacet[i];
-        f->Draw(vecCamDir);
+        bool wire = false, norm = false;
+        GeOb* owner = f->GetOwner();
+        if (owner != NULL)
+        {
+            wire = owner->bWire;
+            norm = owner->bNormal;
+        }
+        f->Draw(vecCamDir, wire, norm);
     }
 
     glPopMatrix();
 
     // рисовать заголовок
-    gl_color(FL_GRAY);
-    glDisable(GL_DEPTH_TEST);
-    gl_font(FL_HELVETICA_BOLD, 16);
-    gl_draw(wire ? "Cube: wire" : "Cube: flat", -4.5f, -4.5f);
-    glEnable(GL_DEPTH_TEST);
+    Fl_Window* gwin = Fl_Window::current();
+    if (gwin == win_glut)
+    {   // клик в меню может сделать gwin удаленным объектом
+        gl_color(FL_GRAY);
+        glDisable(GL_DEPTH_TEST);
+        gl_font(FL_HELVETICA_BOLD, 16);
+        gl_draw(wire ? "Cube: wire" : "Cube: flat", -4.5f, -4.5f);
+        glEnable(GL_DEPTH_TEST);
+    }
 
     // если OpenGL graphics driver установлен, дать ему шанс
     // рисовать виджеты
-    //if(win_glut != NULL) win_glut->display();
+    //if(win_glut != NULL && gwin == win_glut) win_glut->display();
 
     int mode = glutGet(GLUT_INIT_DISPLAY_MODE);
     if ((mode & GLUT_DOUBLE) > 0)
@@ -306,15 +317,27 @@ void GeObWindow::CalcPolar(double& _distance, double& _azimut, double& _elevatio
 // пересортировать список граней
 void GeObWindow::ResortFacet(Vec3& vecCam, Vec3& vecCamDir)
 {
+    if (!bResort)
+    {
+        for (int i = 0; i < vecFacet.size(); i++)
+        {
+            Facet3* f = vecFacet[i];
+            if (!f->GetCalcDone())
+            {
+                bResort = true;
+                break;
+            }
+        }
+    }
     if (!bResort) return;
     Vec3 vec;
     for (int i = 0; i < vecFacet.size(); i++)
     {
         Facet3* f = vecFacet[i];
         //if (f == NULL) continue;
-        f->CalcCenter();
+        f->CalcCenterNormal();
 
-        vec.Copy(f->vCenter);
+        f->GetCenter(vec);
         vec.Sub(vecCam);
 
         double d = vec.ScalarProduct(vecCamDir);
@@ -340,6 +363,64 @@ void GeObWindow::ResortFacet(Vec3& vecCam, Vec3& vecCamDir)
     }
 
     bResort = false;
+}
+
+// удалить GeOb из списока
+void GeObWindow::Delete(GeOb* cube)
+{
+    int i, index = -1;
+    for (i = 0; i < vecGeOb.size(); i++) {
+        if (vecGeOb[i] == NULL)
+            continue;
+        if (vecGeOb[i] == cube)
+        {
+            index = i;
+            break;
+        }
+    }
+    if (i >= vecGeOb.size()) return; // не найден
+
+    // чистить vecFacet
+    for (i = 0; i < cube->GetSize(); i++)
+    {
+        Facet3* fac = cube->GetFacet(i);
+        if (fac == NULL) continue;
+
+        for (int j = 0; j < vecFacet.size(); j++)
+        {
+            Facet3* f = vecFacet[j];
+            if (f == NULL) continue;
+            if (fac->GetIndex() == f->GetIndex())
+            {
+                vecFacet[j] = NULL;
+                break;
+            }
+        }
+    }
+
+    std::vector<Facet3*> vecFacetTmp;
+    for (int j = 0; j < vecFacet.size(); j++)
+    {
+        Facet3* f = vecFacet[j];
+        if (f == NULL) continue;
+        vecFacetTmp.push_back(f);
+    }
+    vecFacet.clear();
+    for (int j = 0; j < vecFacetTmp.size(); j++)
+    {
+        Facet3* f = vecFacetTmp[j];
+        vecFacet.push_back(f);
+    }
+
+    // удалить
+    delete vecGeOb[index];
+    for (i = index; i < vecGeOb.size() - 1; i++) {
+        vecGeOb[i] = vecGeOb[i + 1];
+    }
+    vecGeOb[i] = NULL;
+    vecGeOb.resize(vecGeOb.size() - 1);
+
+    bResort = true;
 }
 
 // gluLookAt2 метод позиционирования камеры

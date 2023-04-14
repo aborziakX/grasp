@@ -14,7 +14,7 @@ namespace Grasp {
 class Cube : public GeOb {
 public:
   /**
-  Конструктор Куба
+  Конструктор Куба с центром в (0, 0, 0.5) и ребром 1
   */
   Cube()
     : GeOb(){
@@ -28,17 +28,22 @@ public:
   */
   void Init() override;
 
+  /**
+  название
+  */
+  void GetName(char buf[33]) override;
+
 protected:
 private:
   /* точки куба */
-  double v0[3] = {-0.5, -0.5, -0.5 };
-  double v1[3] = {0.5, -0.5, -0.5 };
-  double v2[3] = {0.5, 0.5, -0.5 };
-  double v3[3] = {-0.5, 0.5, -0.5 };
-  double v4[3] = {-0.5, -0.5, 0.5 };
-  double v5[3] = {0.5, -0.5, 0.5 };
-  double v6[3] = {0.5, 0.5, 0.5 };
-  double v7[3] = {-0.5, 0.5, 0.5 };
+  double v0[3] = {-0.5, -0.5, -0.0 };
+  double v1[3] = {0.5, -0.5, -0.0 };
+  double v2[3] = {0.5, 0.5, -0.0 };
+  double v3[3] = {-0.5, 0.5, -0.0 };
+  double v4[3] = {-0.5, -0.5, 1.0 };
+  double v5[3] = {0.5, -0.5, 1.0 };
+  double v6[3] = {0.5, 0.5, 1.0 };
+  double v7[3] = {-0.5, 0.5, 1.0 };
 
 
 };

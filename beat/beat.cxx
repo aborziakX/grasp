@@ -26,6 +26,7 @@
 
 #include "GeObWindow.h"
 #include "Cube.h"
+#include "Cyl.h"
 
 using namespace Grasp;
 
@@ -39,12 +40,14 @@ Fl_Multiline_Output* text2; // окно вывода текста
 Fl_Pack* pack;
 Fl_Scroll* scroll;
 GeObWindow* geob_win = NULL; // список геометрических объектов
-Cube *cub1, *cub2;
+GeOb* geobCurrent = NULL; // текущий объект
 
 #define MENUBAR_H 25 // высота меню
 #define MARGIN 20    // фиксированный отступ вокруг виджетов
 #define MARGIN2 (MARGIN * 2)
 #define MARGIN3 (MARGIN * 3)
+
+void FillListBox();
 
 // Помощь
 void show_info_cb(Fl_Widget *, void *) 
@@ -53,6 +56,39 @@ void show_info_cb(Fl_Widget *, void *)
   fl_message(u8"Для работы со сценой использует стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
              "Multiple widgets can be added to Fl_geob_windows.\n"
              "They will be rendered as overlays over the scene.");
+}
+
+void test_cb(Fl_Widget*, void* ud)
+{
+    char buf[333];
+    if (ud != NULL)
+    {
+        ((GeOb*)ud)->GetName(buf);
+        geobCurrent = (GeOb*)ud;
+    }
+    else snprintf(buf, 333, "%s", u8"Закрыть.");
+    fl_message(buf);
+}
+
+// удалить объект
+void delete_cb(Fl_Widget*, void* ud)
+{
+    if (geobCurrent == NULL)
+    {
+        fl_message(u8"Объект не выбран!");
+        return;
+    }
+    int rep = fl_choice(u8"Объект будет удален. Продолжить?", u8"Нет", u8" Да ", 0L);
+    if (rep == 1)
+    {
+        geob_win->Delete(geobCurrent);
+        geobCurrent = NULL;
+        FillListBox();
+    }
+}
+
+void dumb_cb(Fl_Widget*, void*)
+{
 }
 
 int done = 0; // set to 1 in exit button callback
@@ -138,7 +174,7 @@ void UpdatePosInfo()
     text2->value(buf);
 }
 
-//Ключи статуса камеры. Переменные инициализируются нулевыми значениями
+//Координаты мыши. Переменные инициализируются значениями -1
 //когда клавиши не нажаты
 int xOrigin = -1;
 int yOrigin = -1;
@@ -309,29 +345,19 @@ void MakeForm(const char *name)
   Fl_Menu_Bar *menubar = new Fl_Menu_Bar(me_bar_x, me_bar_y, me_bar_w, me_bar_h);
   menubar->add(u8"File/Печать", FL_COMMAND + 'p', show_info_cb);
   menubar->add(u8"File/Выход", FL_COMMAND + 'q', exit_cb);
-  menubar->add("Edit/Print window2", FL_COMMAND + 'p', show_info_cb);
-  menubar->add("Edit/Quit2", FL_COMMAND + 'q', exit_cb);
-  menubar->add("Help", FL_COMMAND + 'h', show_info_cb);
+  menubar->add(u8"Редактор/Print window2", FL_COMMAND + 'p', show_info_cb);
+  menubar->add(u8"Редактор/Удалить", FL_COMMAND + 'd', delete_cb);
+  menubar->add(u8"Помощь", FL_COMMAND + 'h', show_info_cb);
 
   // центральная группа
   Fl_Group *ct_grp = new Fl_Group(ct_grp_x, ct_grp_y, ct_grp_w, ct_grp_h);
   ct_grp->begin();
 
   //list box объектов
-  scroll = new Fl_Scroll(ct_grp_x + MARGIN, MENUBAR_H + MARGIN, 140, 200);
-  pack = new Fl_Pack(ct_grp_x + MARGIN, MENUBAR_H + MARGIN, 140, 200);
+  scroll = new Fl_Scroll(ct_grp_x + MARGIN, MENUBAR_H + MARGIN2, 140, 200, u8"объекты");
+  scroll->begin();
+  pack = new Fl_Pack(ct_grp_x + MARGIN, MENUBAR_H + MARGIN2, 140, 200);
   pack->box(FL_DOWN_FRAME);
-  int nbuttons = 24;
-  // create buttons: position (xx, xx) will be "fixed" by Fl_Pack/Fl_Flex
-  int xx = 35;
-  for (int i = 0; i < nbuttons; i++) {
-      char ltxt[8];
-      snprintf(ltxt, 8, "b%d", i + 1);
-      Fl_Button* b = new Fl_Button(xx, xx, 25, 25);
-      b->copy_label(ltxt);
-      xx += 10;
-  }
-  pack->end();
   scroll->end();
 
   // поля ввода
@@ -416,15 +442,15 @@ void MakeGlWindow(bool bDouble)
     glutCreateWindow("Glut Window");
     glut_win_main = glut_window;
 
-    /*glut_win_main->begin();
+    geob_win->win_glut = glut_win_main;
+
+    /*glut_win_main->begin(); //не работает
     Fl_Widget *w = new Fl_Button(10, 10, 120, 30, "FLTK over GL");
     w->color(FL_FREE_COLOR);
     w->box(FL_BORDER_BOX);
     w->callback(show_info_cb);
-    glut_win_main->end();
-
-    geob_win->win_glut = glut_win_main;*/
-
+    glut_win_main->end();*/
+    
     form->end();
     form->resizable(glut_win_main);
 
@@ -435,6 +461,27 @@ void MakeGlWindow(bool bDouble)
     glutMouseFunc(mouseButton);
     glutMotionFunc(mouseMove);
     glutDisplayFunc(render);
+}
+
+void FillListBox()
+{
+    pack->clear();
+    pack->begin();
+    int nbuttons = geob_win->GetSize();
+    // create buttons: position (xx, xx) will be "fixed" by Fl_Pack/Fl_Flex
+    int xx = 35;
+    char ltxt[33];
+    for (int i = 0; i < nbuttons; i++) {       
+        GeOb * ob = geob_win->GetObj(i);
+        if (ob == NULL) continue;
+        ob->GetName(ltxt);
+        Fl_Button* b = new Fl_Button(xx, xx, 25, 25);
+        b->copy_label(ltxt);
+        b->callback(test_cb);
+        b->user_data((void*)ob);
+        xx += 10;
+    }
+    pack->end();
 }
 
 int main(int argc, char **argv) 
@@ -460,8 +507,9 @@ int main(int argc, char **argv)
   form->show();
 
   // создать Геометрические объекты
-  cub1 = new Cube();
+  Cube * cub1 = new Cube();
   cub1->Translate(1.0f, 0.0f, 0.0f);
+  cub1->bNormal = true;
   geob_win->Add(cub1);
   Facet3 *fac = cub1->GetFacet(0); //задняя
   if (fac != NULL) {
@@ -472,13 +520,28 @@ int main(int argc, char **argv)
       fac->SetColor(0, 255, 255);
   }
 
-  cub2 = new Cube();
+  Cube * cub2 = new Cube();
+  cub2->Translate(-1.5, 0, 0);
+  cub2->bWire = true;
   geob_win->Add(cub2);
   Facet3 *fac2 = cub2->GetFacet(0); //задняя
   if (fac2 != NULL)
     fac2->SetColor(0, 0, 255);
-  cub2->Transform();
-  cub2->Translate(-1.5, 0, 0);
+
+  Cube * cub3 = new Cube();
+  cub3->Scale(1.0, 0.5, 2.0);
+  cub3->Translate(0, -1.5, 0);
+  geob_win->Add(cub3);
+
+  Cyl* cyl1 = new Cyl(20);
+  cyl1->Scale(1.0, 0.5, 2.0);
+  cyl1->Translate(0, 1.5, 0);
+  geob_win->Add(cyl1);
+  
+
+  FillListBox();
+  //FillListBox();
+
 
   //аналог glutMainLoop(); или Fl::run
   for (;;) 

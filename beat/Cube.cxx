@@ -9,14 +9,23 @@ Cube::~Cube() {
   Clear();
 }
 
+// название
+void Cube::GetName(char buf[33])
+{
+    int sz = 33;// sizeof(buf);
+    snprintf(buf, sz, "%s id %d", u8"Куб,", GetIndex());
+}
 //создание граней
 void Cube::Init() {
+    GeOb::Init();
+
     if (vecFacet.size() == 0) {
         for (int j = 0; j < 6; j++) {
             Facet3 *f0 = new Facet3();
             for (int i = 0; i < 4; i++) {
                 f0->Add(new Vec3(v3));
             }
+            f0->SetOwner(this);
             vecFacet.push_back(f0);
         }
     }
