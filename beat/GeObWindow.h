@@ -238,13 +238,13 @@ public:
   /**
   вернуть число элементов в vecGeOb
   */
-  int GetSize() { return vecGeOb.size(); }
+  int GetSize() { return (int)vecGeOb.size(); }
 
   /**
   вернуть GeOb по индексу
   */
   GeOb* GetObj(int index) {
-      int sz = vecGeOb.size();
+      int sz = (int)vecGeOb.size();
       if( index >= sz || index < 0 ) return NULL;
       return vecGeOb[index];
   }

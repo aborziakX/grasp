@@ -1,6 +1,7 @@
 ﻿#ifndef BEAT_GEOB_H
 #define BEAT_GEOB_H
 
+#include <string>
 #include <vector>
 #include "Vec3.h"
 #define v3f(x) glVertex3fv(x)
@@ -49,6 +50,13 @@ public:
       vecPoint[i] = NULL;
     }
     vecPoint.clear();
+  }
+
+  /**
+  вернуть число точек
+  */
+  int GetSize() {
+      return (int)vecPoint.size();
   }
 
   /**
@@ -117,8 +125,8 @@ public:
   void GetNormal(Vec3& _vNorm) { _vNorm.Copy(vNorm); }
 
   /**
-получить собственника
-*/
+  получить собственника
+  */
   GeOb* GetOwner() {
       return owner;
   }
@@ -210,10 +218,19 @@ public:
   /**
   получить сдвиги
   */
-  void GetShift(double & _dShiftX, double& _dShiftY, double& _dShiftZ) {
+  void GetShift(double& _dShiftX, double& _dShiftY, double& _dShiftZ) {
       _dShiftX = dShiftX;
       _dShiftY = dShiftY;
       _dShiftZ = dShiftZ;
+  }
+
+  /**
+  получить масштабирование
+  */
+  void GetScale(double& _dScaleX, double& _dScaleY, double& _dScaleZ) {
+      _dScaleX = dScaleX;
+      _dScaleY = dScaleY;
+      _dScaleZ = dScaleZ;
   }
 
   /**
@@ -243,8 +260,8 @@ public:
   /**
   вернуть число граней
   */
-  size_t GetSize() {
-      return vecFacet.size();
+  int GetSize() {
+      return (int)vecFacet.size();
   }
 
   /**
@@ -271,6 +288,20 @@ public:
   */
   void Transform() { Init(); }
 
+  /**
+  получить каналы цвета ярче
+  */
+  void GetColorBright(unsigned char& _red, unsigned char& _green, unsigned char& _blue, double d, double add) {
+      if (d < 0.0) d = 1.0;
+      double r = ((double)red * d + add);
+      double g = ((double)green * d + add);
+      double b = ((double)blue * d + add);
+
+      _red = (r > 255) ? 255 : (unsigned char)r;
+      _green = (g > 255) ? 255 : (unsigned char)g;
+      _blue = (b > 255) ? 255 : (unsigned char)b;
+  }
+
   float lasttime = 0.0, diameter = 1.0;
   bool bWire = false; ///< true=только ребра
   bool bNormal = false; ///< true=рисовать нормали
@@ -278,10 +309,11 @@ public:
 
 protected:
   std::vector<Facet3 *> vecFacet; ///< список граней
+  std::string name; ///< название
 
 private:
-  double dRotateX = 0, dRotateY = 0, dRotateZ = 0;
-  double dShiftX = 0, dShiftY = 0, dShiftZ = 0; ///< накапливаемый сдвиг
+  double dScaleX = 1.0, dScaleY = 1.0, dScaleZ = 1.0; ///< масштабирование
+  double dShiftX = 0, dShiftY = 0, dShiftZ = 0; ///< сдвиг
 
   unsigned char red = 0, green = 255, blue = 0; ///< каналы цвета
 

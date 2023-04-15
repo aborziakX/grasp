@@ -54,28 +54,39 @@ void Facet3::Draw(Vec3& vecCamDir, bool wire, bool norm)
 {
     unsigned char _red, _green, _blue;
     Facet3* f = this;
-    f->GetColor(_red, _green, _blue);
+
+    if (f->owner != NULL && f->owner->bSelect)
+        f->owner->GetColorBright(_red, _green, _blue, 1.3, 144.0); // ярче
+    else f->GetColor(_red, _green, _blue);
+
     f->CalcCenter();
     f->CalcNormal();
     //cout << fixed << setprecision(18) << f->vNorm.GetX() << endl;
     //cout << fixed << setprecision(18) << f->vNorm.GetY() << endl;
     //cout << fixed << setprecision(18) << f->vNorm.GetZ() << endl;
+
     double sca = (vecCamDir.ScalarProduct(f->vNorm)); //между -1 и 1
-    //sca = -1; //test
+    int sz = f->GetSize();
+    if (sz == 2) sca = -1;
     if (sca > 0)
     { // невидимая грань
         _red = 0;
-        _green = 0; 
+        _green = 0;
         _blue = 0;
     }
     sca = abs(sca);
     //cout << fixed << setprecision(18) << sca << endl;
     //cout << endl;
 
-    glBegin(wire ? GL_LINE_LOOP : GL_POLYGON);
+    int mode = GL_POLYGON;
+    if (wire) mode = GL_LINE_LOOP;
+    else if (sz == 3) mode = GL_TRIANGLES;
+    else if (sz == 2) mode = GL_LINE;
+
+    glBegin(mode);
     glColor3ub((char)(sca * _red), (char)(sca * _green), (char)(sca * _blue));
 
-    for (int j = 0; j < 4; j++) {
+    for (int j = 0; j < f->GetSize(); j++) {
         //цикл по точкам грани
         Vec3* p = f->GetPoint(j);
         if (p != NULL) {
@@ -123,40 +134,56 @@ void GeOb::Draw(Vec3 & vecCamDir) {
 // сдвинуть точки
 void GeOb::Translate(double dx, double dy, double dz) 
 {
-  for (int i = 0; i < vecFacet.size(); i++) 
-  { //цикл по граням
-    Facet3 *f = vecFacet[i];
+    // сдвиги с учетом предыдущего
+    double dx_2 = dx - dShiftX;
+    double dy_2 = dy - dShiftY;
+    double dz_2 = dz - dShiftZ;
+    
+    for (int i = 0; i < vecFacet.size(); i++)
+    { //цикл по граням
+        Facet3 *f = vecFacet[i];
 
-    for (int j = 0; j < 4; j++) {
-      //цикл по точкам грани
-      Vec3 *p = f->GetPoint(j);
-      if (p != NULL) {
-        p->Add(dx, dy, dz);
-      }
+        for (int j = 0; j < f->GetSize(); j++)
+        { //цикл по точкам грани
+            Vec3 *p = f->GetPoint(j);
+            if (p != NULL) {
+                p->Add(dx_2, dy_2, dz_2);
+            }
+        }
+        f->SetCalcDone(false);
     }
-    f->SetCalcDone(false);
-  }
-  dShiftX += dx;
-  dShiftY += dy;
-  dShiftZ += dz;
+    // абсолютный сдвиг
+    dShiftX = dx;
+    dShiftY = dy;
+    dShiftZ = dz;
 }
 
 // масштабировать точки
 void GeOb::Scale(double dx, double dy, double dz)
 {
+    if (dx <= 0.0 || dy <= 0.0 || dz <= 0.0) return;
+    // масштаб с учетом предыдущего
+    double dx_2 = dx / dScaleX;
+    double dy_2 = dy / dScaleY;
+    double dz_2 = dz / dScaleZ;
+
     for (int i = 0; i < vecFacet.size(); i++)
-    { //цикл по граням
+    {   //цикл по граням
         Facet3* f = vecFacet[i];
 
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < f->GetSize(); j++) {
             //цикл по точкам грани
             Vec3* p = f->GetPoint(j);
             if (p != NULL) {
-                p->Scale3(dx, dy, dz);
+                p->Scale3(dx_2, dy_2, dz_2);
             }
         }
         f->SetCalcDone(false);
     }
+    // абсолютный масштаб
+    dScaleX = dx;
+    dScaleY = dy;
+    dScaleZ = dz;
 }
 
 } // namespace Grasp

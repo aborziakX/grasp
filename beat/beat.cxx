@@ -27,6 +27,8 @@
 #include "GeObWindow.h"
 #include "Cube.h"
 #include "Cyl.h"
+#include "Lines.h"
+#include "Dialogs.h"
 
 using namespace Grasp;
 
@@ -41,6 +43,12 @@ Fl_Pack* pack;
 Fl_Scroll* scroll;
 GeObWindow* geob_win = NULL; // список геометрических объектов
 GeOb* geobCurrent = NULL; // текущий объект
+Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в LB
+
+// диалоги
+Pass_Window * pass_window = NULL;
+AddCubeDialog * add_cube_dlg = NULL;
+
 
 #define MENUBAR_H 25 // высота меню
 #define MARGIN 20    // фиксированный отступ вокруг виджетов
@@ -58,16 +66,33 @@ void show_info_cb(Fl_Widget *, void *)
              "They will be rendered as overlays over the scene.");
 }
 
-void test_cb(Fl_Widget*, void* ud)
+// нажатие кнопки в listbox
+void listbox_cb(Fl_Widget* bt, void* ud)
 {
     char buf[333];
     if (ud != NULL)
     {
-        ((GeOb*)ud)->GetName(buf);
+        //((GeOb*)ud)->GetName(buf);
+        if (lbBtnCurrent == bt) 
+            return;
+
+        if(geobCurrent != NULL)
+            geobCurrent->bSelect = false;
         geobCurrent = (GeOb*)ud;
+        geobCurrent->bSelect = true;
+
+        if (lbBtnCurrent != NULL)
+        {
+            //lbBtnCurrent->activate();
+            lbBtnCurrent->color(FL_BACKGROUND_COLOR);
+            lbBtnCurrent->redraw();
+        }
+        //bt->deactivate();
+        bt->color(FL_SELECTION_COLOR);
+        lbBtnCurrent = bt;
     }
-    else snprintf(buf, 333, "%s", u8"Закрыть.");
-    fl_message(buf);
+    //else snprintf(buf, 333, "%s", u8"Закрыть.");
+    //fl_message(buf);
 }
 
 // удалить объект
@@ -78,17 +103,64 @@ void delete_cb(Fl_Widget*, void* ud)
         fl_message(u8"Объект не выбран!");
         return;
     }
-    int rep = fl_choice(u8"Объект будет удален. Продолжить?", u8"Нет", u8" Да ", 0L);
+    char buf[333], buf2[333];
+    geobCurrent->GetName(buf2);
+    snprintf(buf, 333, u8"[%s] будет удален. Продолжить?", buf2);
+    int rep = fl_choice(buf, u8"Нет", u8" Да ", 0L);
     if (rep == 1)
     {
         geob_win->Delete(geobCurrent);
         geobCurrent = NULL;
+        lbBtnCurrent = NULL;
         FillListBox();
     }
 }
 
-void dumb_cb(Fl_Widget*, void*)
+void pass_window_done_cb(Fl_Widget* bt, void* ud)
 {
+    pass_window->hide();
+}
+void add_cube_done_cb(Fl_Widget* bt, void* ud)
+{
+    int m = *(int*)ud;
+    if (m == 1)
+    { //Ok
+        double x, y, z, xSc, ySc, zSc;
+        bool bSuc = add_cube_dlg->GetPos(x, y, z, xSc, ySc, zSc);
+        if (!bSuc)
+        {
+            fl_message(u8"Ошибка в данных");
+            return;
+        }
+        Cube* cub3 = new Cube();
+        cub3->Scale(xSc, ySc, zSc);
+        cub3->Translate(x, y, z);
+        geob_win->Add(cub3);
+        FillListBox();
+    }
+    add_cube_dlg->hide();
+}
+
+void add_cube_cb(Fl_Widget* bt, void* ud)
+{
+    int m = *(int*)ud;
+    if (m == 0)
+    {
+        //fl_message(u8"Куб");
+        if (add_cube_dlg == NULL)
+            add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+        add_cube_dlg->show();
+    }
+    if (m == 1)
+    {       
+        if (pass_window == NULL)
+            pass_window = new Pass_Window(pass_window_done_cb);
+        pass_window->show();
+    }
+    if (m == 2)
+    {
+        fl_message(u8"Лин");
+    }
 }
 
 int done = 0; // set to 1 in exit button callback
@@ -314,6 +386,10 @@ void processNormalKeys(unsigned char key, int xx, int yy)
 int gl_w = 350; //ширина GL окна
 int gl_h = 350; //высота GL окна
 
+int m1 = 0; //куб
+int m2 = 1; //цил.
+int m3 = 2; //лин.
+
 // создать главное окно и виджеты
 void MakeForm(const char *name) 
 {
@@ -345,7 +421,9 @@ void MakeForm(const char *name)
   Fl_Menu_Bar *menubar = new Fl_Menu_Bar(me_bar_x, me_bar_y, me_bar_w, me_bar_h);
   menubar->add(u8"File/Печать", FL_COMMAND + 'p', show_info_cb);
   menubar->add(u8"File/Выход", FL_COMMAND + 'q', exit_cb);
-  menubar->add(u8"Редактор/Print window2", FL_COMMAND + 'p', show_info_cb);
+  menubar->add(u8"Редактор/Добавить/Куб", FL_COMMAND + 'u', add_cube_cb, (void*)&m1);
+  menubar->add(u8"Редактор/Добавить/Цилиндр", FL_COMMAND + 'y', add_cube_cb, (void*)&m2);
+  menubar->add(u8"Редактор/Добавить/Линии", FL_COMMAND + 'l', add_cube_cb, (void*)&m3);
   menubar->add(u8"Редактор/Удалить", FL_COMMAND + 'd', delete_cb);
   menubar->add(u8"Помощь", FL_COMMAND + 'h', show_info_cb);
 
@@ -407,8 +485,7 @@ void MakeForm(const char *name)
   sprintf_s(buf, "%.3f", geob_win->GetZLook());
   inZLook->value(buf);
 
-
-  text2 = new Fl_Multiline_Output(ct_grp_x + MARGIN, 250, 200, 100, u8"расстояние, азимут, возвышение");
+  text2 = new Fl_Multiline_Output(ct_grp_x + MARGIN, 300, 200, 50, u8"расстояние, азимут, возвышение");
   text2->value("");
   text2->align(FL_ALIGN_BOTTOM);
   text2->tooltip("Fl_Multiline_Output widget.");
@@ -463,9 +540,12 @@ void MakeGlWindow(bool bDouble)
     glutDisplayFunc(render);
 }
 
+// заполнить listbox с объектами
 void FillListBox()
 {
-    pack->clear();
+    for (int i = pack->children() - 1; i >= 0; i--) {
+        pack->delete_child(i);
+    }
     pack->begin();
     int nbuttons = geob_win->GetSize();
     // create buttons: position (xx, xx) will be "fixed" by Fl_Pack/Fl_Flex
@@ -477,11 +557,14 @@ void FillListBox()
         ob->GetName(ltxt);
         Fl_Button* b = new Fl_Button(xx, xx, 25, 25);
         b->copy_label(ltxt);
-        b->callback(test_cb);
+        b->callback(listbox_cb);
         b->user_data((void*)ob);
+        b->align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
         xx += 10;
     }
     pack->end();
+    pack->redraw();
+    scroll->redraw();
 }
 
 int main(int argc, char **argv) 
@@ -537,11 +620,20 @@ int main(int argc, char **argv)
   cyl1->Scale(1.0, 0.5, 2.0);
   cyl1->Translate(0, 1.5, 0);
   geob_win->Add(cyl1);
-  
 
+  Lines* ln1 = new Lines();
+  Vec3 v1, v2;
+  v1.Copy(2, 1, 1);
+  v2.Copy(2, 5, 1);
+  ln1->AddLine(v1, v2);
+  v2.Copy(2, 5, 1);
+  v2.Copy(5, 5, 1);
+  ln1->AddLine(v1, v2);
+  ln1->SetColor(255, 192, 0);
+  geob_win->Add(ln1);
+
+  // заполнить listbox с объектами
   FillListBox();
-  //FillListBox();
-
 
   //аналог glutMainLoop(); или Fl::run
   for (;;) 
@@ -567,14 +659,26 @@ int main(int argc, char **argv)
     if (done)
       break; // 'exit button' была нажата
 
-    Fl::wait(0.01); // заснуть в секундах
+    Fl::wait(0.01); // заснуть в секундах = 10 ms
   }
 
   // удалить главное окно и виджеты
   delete form;
   // удалить Хранилище
   delete geob_win;
-  return 0;
+
+  // удалить диалоги
+  if (add_cube_dlg != NULL)
+  {
+      delete add_cube_dlg;
+      add_cube_dlg = NULL;
+  }
+  if (pass_window != NULL)
+  {
+      delete pass_window;
+      pass_window = NULL;
+  }
+  return 0; 
 }
 //==
 
