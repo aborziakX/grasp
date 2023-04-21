@@ -12,7 +12,7 @@
   pack->redraw();
 
 =======  TODO    ========
-
+проверка преобразования (с нулем сравнить?)
 remove facet
 конус, сфера, poly
 вращать
@@ -27,6 +27,10 @@ log-file
 клиент-сервер
 преобразование форматов
 
+like C:\c_plus\vtk\dll
+int BEATGUI_DataIni::IniParse(const char * fname)
+
+
 =======  DONE    ========
 vecLook - 2023-04-12
 +- buttons - 2023-04-12
@@ -40,3 +44,4 @@ list box объектов - 2023-04-15
 Remove object - 2023-04-15 
 select object - яркость - 2023-04-15
 линия (набор) - 2023-04-15
+

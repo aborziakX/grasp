@@ -8,6 +8,7 @@
 #include <FL/Fl_Input.H>
 
 #include <stdlib.h>
+#include "GeObWindow.h"
 
 namespace Grasp {
 /**
@@ -45,6 +46,37 @@ class AddCubeDialog : public Fl_Window
         Fl_Input inScX{ 150, 10, 70, 20, u8"масш.x:" };
         Fl_Input inScY{ 150, 40, 70, 20, u8"масш.y:" };
         Fl_Input inScZ{ 150, 70, 70, 20, u8"масш.z:" };
+};
+
+/**
+@class   CameraXyzDialog
+@brief   камера XYZ
+*/
+class CameraXyzDialog : public Fl_Window
+{
+public:
+    CameraXyzDialog(Fl_Callback* cb);
+    void Init(GeObWindow* go);
+    bool GetPos(double& x, double& y, double& z,
+        double& xLook, double& yLook, double& zLook,
+        double& xTop, double& yTop, double& zTop);
+
+private:
+    Fl_Button button_Ok{ 10, 220, 100, 25, u8"Сохранить" };
+    Fl_Button button_Cancel{ 150, 220, 100, 25, u8"Отмена" };
+    int m1 = 1; //Ok
+    int m2 = 2; //Cancel
+    Fl_Input inX{ 50, 10, 70, 20, "xCam:" };
+    Fl_Input inY{ 50, 40, 70, 20, "yCam:" };
+    Fl_Input inZ{ 50, 70, 70, 20, "zCam:" };
+
+    Fl_Input inLookX{ 170, 10, 70, 20, u8"xLook:" };
+    Fl_Input inLookY{ 170, 40, 70, 20, u8"yLook:" };
+    Fl_Input inLookZ{ 170, 70, 70, 20, u8"zLook:" };
+
+    Fl_Input inTopX{ 290, 10, 70, 20, u8"xTop:" };
+    Fl_Input inTopY{ 290, 40, 70, 20, u8"yTop:" };
+    Fl_Input inTopZ{ 290, 70, 70, 20, u8"zTop:" };
 };
 
 } // namespace Grasp

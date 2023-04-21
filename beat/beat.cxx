@@ -37,7 +37,7 @@ Fl_Glut_Window* glut_win_main = NULL; // окно с OpenGl
 Fl_Slider *slRotX, *slRotY, *slRotZ; // слайдеры
 Fl_Button *btnApply; // кнопка
 // ввод текста
-Fl_Input *inXTop, *inYTop, *inZTop, * inXCam, * inYCam, * inZCam, * inXLook, * inYLook, * inZLook;
+//Fl_Input *inXTop, *inYTop, *inZTop, * inXCam, * inYCam, * inZCam, * inXLook, * inYLook, * inZLook;
 Fl_Multiline_Output* text2; // окно вывода текста
 Fl_Pack* pack;
 Fl_Scroll* scroll;
@@ -46,8 +46,9 @@ GeOb* geobCurrent = NULL; // текущий объект
 Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в LB
 
 // диалоги
-Pass_Window * pass_window = NULL;
-AddCubeDialog * add_cube_dlg = NULL;
+Pass_Window* pass_window = NULL;
+AddCubeDialog* add_cube_dlg = NULL;
+CameraXyzDialog* camera_xyz_dlg = NULL;
 
 
 #define MENUBAR_H 25 // высота меню
@@ -58,13 +59,21 @@ AddCubeDialog * add_cube_dlg = NULL;
 void FillListBox();
 
 // Помощь
-void show_info_cb(Fl_Widget *, void *) 
+void help_cb(Fl_Widget *, void *) 
 {
   // fl_close = "Закрыть";
   fl_message(u8"Для работы со сценой использует стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
              "Multiple widgets can be added to Fl_geob_windows.\n"
              "They will be rendered as overlays over the scene.");
 }
+
+void file_open_cb(Fl_Widget*, void*)
+{
+}
+void file_save_cb(Fl_Widget*, void*)
+{
+}
+
 
 // нажатие кнопки в listbox
 void listbox_cb(Fl_Widget* bt, void* ud)
@@ -120,6 +129,7 @@ void pass_window_done_cb(Fl_Widget* bt, void* ud)
 {
     pass_window->hide();
 }
+
 void add_cube_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
@@ -163,6 +173,57 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
     }
 }
 
+//камера XYZ завершена
+void camera_xyz_done_cb(Fl_Widget* bt, void* ud)
+{
+    int m = *(int*)ud;
+    if (m == 1)
+    {   //Ok
+        double xCam, yCam, zCam, xLook, yLook, zLook, xTop, yTop, zTop;
+        bool bSuc = camera_xyz_dlg->GetPos(xCam, yCam, zCam, xLook, yLook, zLook, xTop, yTop, zTop);
+        if (!bSuc)
+        {
+            fl_message(u8"Ошибка в данных");
+            return;
+        }
+        geob_win->SetXCam(xCam);
+        geob_win->SetYCam(yCam);
+        geob_win->SetZCam(zCam);
+
+        geob_win->SetXTop(xTop);
+        geob_win->SetYTop(yTop);
+        geob_win->SetZTop(zTop);
+
+        geob_win->SetXLook(xLook);
+        geob_win->SetYLook(yLook);
+        geob_win->SetZLook(zLook);
+
+        double distance, azimut, elevation;
+        geob_win->CalcPolar(distance, azimut, elevation);
+    }
+
+    camera_xyz_dlg->hide();
+}
+//открыть камера XYZ диалог
+void camera_xyz_cb(Fl_Widget*, void*)
+{
+    if (camera_xyz_dlg == NULL)
+        camera_xyz_dlg = new CameraXyzDialog(camera_xyz_done_cb);
+    camera_xyz_dlg->Init(geob_win);
+    camera_xyz_dlg->show();
+}
+
+void camera_sph_done_cb(Fl_Widget* bt, void* ud)
+{
+    int m = *(int*)ud;
+    if (m == 1)
+    {   //Ok
+    }
+}
+void camera_sph_cb(Fl_Widget*, void*)
+{
+}
+
 int done = 0; // set to 1 in exit button callback
 
 // exit button callback
@@ -171,77 +232,12 @@ void exit_cb(Fl_Widget *, void *)
   done = 1;
 }
 
-// apply button callback
-void apply_cb(Fl_Widget *, void *) 
-{
-  if (done == 1) return;
-  try {
-    float xTop = (float)atof(inXTop->value());
-    float yTop = (float)atof(inYTop->value());
-    float zTop = (float)atof(inZTop->value());
-
-    float xCam = (float)atof(inXCam->value());
-    float yCam = (float)atof(inYCam->value());
-    float zCam = (float)atof(inZCam->value());
-
-    float xLook = (float)atof(inXLook->value());
-    float yLook = (float)atof(inYLook->value());
-    float zLook = (float)atof(inZLook->value());
-    
-    geob_win->SetXCam(xCam);
-    geob_win->SetYCam(yCam);
-    geob_win->SetZCam(zCam);
-
-    geob_win->SetXTop(xTop);
-    geob_win->SetYTop(yTop);
-    geob_win->SetZTop(zTop);
-
-    geob_win->SetXLook(xLook);
-    geob_win->SetYLook(yLook);
-    geob_win->SetZLook(zLook);
-
-
-    double distance, azimut, elevation;
-    geob_win->CalcPolar(distance, azimut, elevation);
-    distance += 0.0;
-  } catch (...) {
-  }
-}
-
 void UpdatePosInfo()
 {
     if (done == 1) return;
     double distance, azimut, elevation;
     geob_win->GetPolar(distance, azimut, elevation);
     char buf[33];
-    sprintf_s(buf, "%.3f", geob_win->GetXCam());
-    inXCam->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetYCam());
-    inYCam->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetZCam());
-    inZCam->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetXTop());
-    inXTop->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetYTop());
-    inYTop->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetZTop());
-    inZTop->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetXLook());
-    inXLook->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetYLook());
-    inYLook->value(buf);
-
-    sprintf_s(buf, "%.3f", geob_win->GetZLook());
-    inZLook->value(buf);
-
-    geob_win->GetPolar(distance, azimut, elevation);
     sprintf_s(buf, "d=%.3f a=%.3f e=%.3f ", distance, azimut, elevation);
     text2->value(buf);
 }
@@ -419,13 +415,19 @@ void MakeForm(const char *name)
 
   // меню
   Fl_Menu_Bar *menubar = new Fl_Menu_Bar(me_bar_x, me_bar_y, me_bar_w, me_bar_h);
-  menubar->add(u8"File/Печать", FL_COMMAND + 'p', show_info_cb);
-  menubar->add(u8"File/Выход", FL_COMMAND + 'q', exit_cb);
-  menubar->add(u8"Редактор/Добавить/Куб", FL_COMMAND + 'u', add_cube_cb, (void*)&m1);
-  menubar->add(u8"Редактор/Добавить/Цилиндр", FL_COMMAND + 'y', add_cube_cb, (void*)&m2);
-  menubar->add(u8"Редактор/Добавить/Линии", FL_COMMAND + 'l', add_cube_cb, (void*)&m3);
-  menubar->add(u8"Редактор/Удалить", FL_COMMAND + 'd', delete_cb);
-  menubar->add(u8"Помощь", FL_COMMAND + 'h', show_info_cb);
+  menubar->add(u8"Файл/Открыть", FL_COMMAND + 'o', file_open_cb);
+  menubar->add(u8"Файл/Сохранить", FL_COMMAND + 's', file_save_cb);
+  menubar->add(u8"Файл/Выход", FL_COMMAND + 'q', exit_cb);
+
+  menubar->add(u8"Проект/Камера XYZ", FL_COMMAND + 'x', camera_xyz_cb);
+  menubar->add(u8"Проект/Камера сферично", FL_COMMAND + 'r', camera_sph_cb);
+
+  menubar->add(u8"Геометрия/Добавить/Куб", FL_COMMAND + 'u', add_cube_cb, (void*)&m1);
+  menubar->add(u8"Геометрия/Добавить/Цилиндр", FL_COMMAND + 'y', add_cube_cb, (void*)&m2);
+  menubar->add(u8"Геометрия/Добавить/Линии", FL_COMMAND + 'l', add_cube_cb, (void*)&m3);
+  menubar->add(u8"Геометрия/Удалить", FL_COMMAND + 'd', delete_cb);
+
+  menubar->add(u8"Помощь", FL_COMMAND + 'h', help_cb);
 
   // центральная группа
   Fl_Group *ct_grp = new Fl_Group(ct_grp_x, ct_grp_y, ct_grp_w, ct_grp_h);
@@ -438,60 +440,10 @@ void MakeForm(const char *name)
   pack->box(FL_DOWN_FRAME);
   scroll->end();
 
-  // поля ввода
-  int wiIn = 50, heIn = 20, xIn = 700, yIn = MENUBAR_H + MARGIN;
-  inXCam = new Fl_Input(xIn, yIn, wiIn, heIn, "xCam:");
-  inXCam->tooltip("XCam input field");
-  sprintf_s(buf, "%.3f", geob_win->GetXCam());
-  inXCam->value(buf);
-
-  inYCam = new Fl_Input(xIn, yIn + (MARGIN + heIn), wiIn, heIn, "yCam:");
-  inYCam->tooltip("YCam input field");
-  sprintf_s(buf, "%.3f", geob_win->GetYCam());
-  inYCam->value(buf);
-
-  inZCam = new Fl_Input(xIn, yIn + 2*(MARGIN + heIn), wiIn, heIn, "zCam:");
-  inZCam->tooltip("ZCam input field");
-  sprintf_s(buf, "%.3f", geob_win->GetZCam());
-  inZCam->value(buf);
-
-  inXTop = new Fl_Input(xIn, yIn + 3*(MARGIN + heIn), wiIn, heIn, "xTop:");
-  inXTop->tooltip("XTop input field");
-  sprintf_s(buf, "%.3f", geob_win->GetXTop());
-  inXTop->value(buf);
-
-  inYTop = new Fl_Input(xIn, yIn + 4*(MARGIN + heIn), wiIn, heIn, "yTop:");
-  inYTop->tooltip("ZTop input field");
-  sprintf_s(buf, "%.3f", geob_win->GetYTop());
-  inYTop->value(buf);
-
-  inZTop = new Fl_Input(xIn, yIn + 5*(MARGIN + heIn), wiIn, heIn, "zTop:");
-  inZTop->tooltip("ZTop input field");
-  sprintf_s(buf, "%.3f", geob_win->GetZTop());
-  inZTop->value(buf);
-
-  inXLook = new Fl_Input(xIn, yIn + 6 * (MARGIN + heIn), wiIn, heIn, "xLook:");
-  inXLook->tooltip("XLook input field");
-  sprintf_s(buf, "%.3f", geob_win->GetXLook());
-  inXLook->value(buf);
-
-  inYLook = new Fl_Input(xIn, yIn + 7 * (MARGIN + heIn), wiIn, heIn, "yLook:");
-  inYLook->tooltip("YLook input field");
-  sprintf_s(buf, "%.3f", geob_win->GetYLook());
-  inYLook->value(buf);
-
-  inZLook = new Fl_Input(xIn, yIn + 8 * (MARGIN + heIn), wiIn, heIn, "zLook:");
-  inZLook->tooltip("ZLook input field");
-  sprintf_s(buf, "%.3f", geob_win->GetZLook());
-  inZLook->value(buf);
-
   text2 = new Fl_Multiline_Output(ct_grp_x + MARGIN, 300, 200, 50, u8"расстояние, азимут, возвышение");
   text2->value("");
   text2->align(FL_ALIGN_BOTTOM);
   text2->tooltip("Fl_Multiline_Output widget.");
-
-  btnApply = new Fl_Button(ct_grp_x + MARGIN, form_h - MARGIN - 25, 100, 25, u8"Применить");
-  btnApply->callback(apply_cb);
 
   ct_grp->end();
   ct_grp->box(FL_BORDER_BOX);
@@ -677,6 +629,11 @@ int main(int argc, char **argv)
   {
       delete pass_window;
       pass_window = NULL;
+  }
+  if (camera_xyz_dlg != NULL)
+  {
+      delete camera_xyz_dlg;
+      camera_xyz_dlg = NULL;
   }
   return 0; 
 }

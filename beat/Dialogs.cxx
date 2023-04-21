@@ -43,4 +43,65 @@ bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double&
 }
 //==
 
+//==камера XYZ
+CameraXyzDialog::CameraXyzDialog(Fl_Callback* cb) :
+    Fl_Window(200, 100, 400, 300, u8"камера XYZ")
+{
+    button_Ok.callback(cb, &m1);
+    button_Cancel.callback(cb, &m2);
+}
+
+bool CameraXyzDialog::GetPos(double& x, double& y, double& z, 
+    double& xLook, double& yLook, double& zLook,
+    double& xTop, double& yTop, double& zTop)
+{
+    bool rc = true;
+    try {
+        x = atof(inX.value());
+        y = atof(inY.value());
+        z = atof(inZ.value());
+        xLook = atof(inLookX.value());
+        yLook = atof(inLookY.value());
+        zLook = atof(inLookZ.value());
+        xTop = atof(inTopX.value());
+        yTop = atof(inTopY.value());
+        zTop = atof(inTopZ.value());
+    }
+    catch (...) {
+        rc = false;
+    }
+    return rc;
+}
+void CameraXyzDialog::Init(GeObWindow* geob_win)
+{
+    char buf[33];
+    sprintf_s(buf, "%.3f", geob_win->GetXCam());
+    inX.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetYCam());
+    inY.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetZCam());
+    inZ.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetXTop());
+    inTopX.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetYTop());
+    inTopY.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetZTop());
+    inTopZ.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetXLook());
+    inLookX.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetYLook());
+    inLookY.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetZLook());
+    inLookZ.value(buf);
+}
+//==
+
 }
