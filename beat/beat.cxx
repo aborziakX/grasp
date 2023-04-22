@@ -49,12 +49,15 @@ Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в LB
 Pass_Window* pass_window = NULL;
 AddCubeDialog* add_cube_dlg = NULL;
 CameraXyzDialog* camera_xyz_dlg = NULL;
+CameraSphDialog* camera_sph_dlg = NULL;
 
-
-#define MENUBAR_H 25 // высота меню
-#define MARGIN 20    // фиксированный отступ вокруг виджетов
+// высота меню
+#define MENUBAR_H 25
+// фиксированный отступ вокруг виджетов
+#define MARGIN 20
 #define MARGIN2 (MARGIN * 2)
 #define MARGIN3 (MARGIN * 3)
+#define MARGIN4 (MARGIN * 4)
 
 void FillListBox();
 
@@ -62,9 +65,9 @@ void FillListBox();
 void help_cb(Fl_Widget *, void *) 
 {
   // fl_close = "Закрыть";
-  fl_message(u8"Для работы со сценой использует стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
-             "Multiple widgets can be added to Fl_geob_windows.\n"
-             "They will be rendered as overlays over the scene.");
+  fl_message(u8"Множественные геометрические объекты могут добавлену в сцену.\n"
+    "Для работы со сценой используйте стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
+  );
 }
 
 void file_open_cb(Fl_Widget*, void*)
@@ -213,15 +216,35 @@ void camera_xyz_cb(Fl_Widget*, void*)
     camera_xyz_dlg->show();
 }
 
+//камера сферичические завершена
 void camera_sph_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
     if (m == 1)
-    {   //Ok
+    {   //Ok 
+        double distance, azimut, elevation, xLook, yLook, zLook;
+        bool bSuc = camera_sph_dlg->GetPos(distance, azimut, elevation, xLook, yLook, zLook);
+        if (!bSuc)
+        {
+            fl_message(u8"Ошибка в данных");
+            return;
+        }
+        geob_win->SetXLook(xLook);
+        geob_win->SetYLook(yLook);
+        geob_win->SetZLook(zLook);
+
+        geob_win->SetPolar(distance, azimut, elevation);
     }
+
+    camera_sph_dlg->hide();
 }
+//открыть камера сферичические диалог
 void camera_sph_cb(Fl_Widget*, void*)
 {
+    if (camera_sph_dlg == NULL)
+        camera_sph_dlg = new CameraSphDialog(camera_sph_done_cb);
+    camera_sph_dlg->Init(geob_win);
+    camera_sph_dlg->show();
 }
 
 int done = 0; // set to 1 in exit button callback
@@ -379,8 +402,10 @@ void processNormalKeys(unsigned char key, int xx, int yy)
     }
 }
 
-int gl_w = 350; //ширина GL окна
-int gl_h = 350; //высота GL окна
+int ct_grp_w = 240; // ширина области виджетов
+int gl_w = 400; //ширина GL окна
+int gl_h = 400; //высота GL окна
+//int rt_grp_w = 5; // область для будущего
 
 int m1 = 0; //куб
 int m2 = 1; //цил.
@@ -389,24 +414,21 @@ int m3 = 2; //лин.
 // создать главное окно и виджеты
 void MakeForm(const char *name) 
 {
-  int ct_grp_w = 450; // ширина области виджетов
-  int rt_grp_w = 10; // для будущего
-
-  int form_w = gl_w + ct_grp_w + rt_grp_w + 4 * MARGIN; // ширина главного окна
-  int form_h = gl_h + MENUBAR_H + 2 * MARGIN;           // высота главного окна
+  int form_w = gl_w + ct_grp_w + MARGIN3; // ширина главного окна
+  int form_h = gl_h + MENUBAR_H + MARGIN2;           // высота главного окна
   // XYWH'меню
   int me_bar_x = 0, 
       me_bar_y = 0, 
       me_bar_w = form_w, 
       me_bar_h = MENUBAR_H; 
   // XYWH'центральная группа
-  int ct_grp_x = gl_w + MARGIN2,
+  int ct_grp_x = MARGIN,
       ct_grp_y = MENUBAR_H + MARGIN/2,
       ct_grp_h = form_h - MENUBAR_H - MARGIN; 
-  // XYWH'правая группа
-  int rt_grp_x = ct_grp_x + ct_grp_w, 
+  /*// XYWH'правая группа
+  int rt_grp_x = ct_grp_x + ct_grp_w + gl_w + MARGIN2,
       rt_grp_y = ct_grp_y, 
-      rt_grp_h = ct_grp_h;
+      rt_grp_h = ct_grp_h;*/
   char buf[33];
 
   // главное окно
@@ -434,27 +456,26 @@ void MakeForm(const char *name)
   ct_grp->begin();
 
   //list box объектов
-  scroll = new Fl_Scroll(ct_grp_x + MARGIN, MENUBAR_H + MARGIN2, 140, 200, u8"объекты");
+  scroll = new Fl_Scroll(ct_grp_x + MARGIN, MENUBAR_H + MARGIN2, 200, 300, u8"объекты");
   scroll->begin();
-  pack = new Fl_Pack(ct_grp_x + MARGIN, MENUBAR_H + MARGIN2, 140, 200);
+  pack = new Fl_Pack(ct_grp_x + MARGIN, MENUBAR_H + MARGIN2, 200, 300);
   pack->box(FL_DOWN_FRAME);
   scroll->end();
 
-  text2 = new Fl_Multiline_Output(ct_grp_x + MARGIN, 300, 200, 50, u8"расстояние, азимут, возвышение");
+  text2 = new Fl_Multiline_Output(ct_grp_x + MARGIN, ct_grp_h - MARGIN3, 200, 40, u8"Инфо окно");
   text2->value("");
   text2->align(FL_ALIGN_BOTTOM);
-  text2->tooltip("Fl_Multiline_Output widget.");
+  //text2->tooltip("Инфо окно");
 
   ct_grp->end();
   ct_grp->box(FL_BORDER_BOX);
-  //ct_grp->resizable(slRotX); // only sliders resize vertically, not buttons
   
   // right resizer
-  Fl_Box *rt_resizer = new Fl_Box(rt_grp_x - 5, rt_grp_y, 10, rt_grp_h);
-  rt_resizer->box(FL_NO_BOX);
+  //Fl_Box *rt_resizer = new Fl_Box(rt_grp_x - 5, rt_grp_y, 5, rt_grp_h);
+  //rt_resizer->box(FL_NO_BOX);
 
   form->end();
-  form->resizable(rt_resizer);
+  //form->resizable(rt_resizer);
   form->size_range(form->w(), form->h()); // minimum window size
 }
 
@@ -466,7 +487,7 @@ void MakeGlWindow(bool bDouble)
     unsigned int mode = GLUT_DEPTH | GLUT_RGBA | GLUT_MULTISAMPLE;
     if (bDouble) mode |= GLUT_DOUBLE;
     glutInitDisplayMode(mode);
-    glutInitWindowPosition(MARGIN, MENUBAR_H + MARGIN);
+    glutInitWindowPosition(ct_grp_w + MARGIN2, MENUBAR_H + MARGIN);
     glutInitWindowSize(gl_w, gl_h);
     glutCreateWindow("Glut Window");
     glut_win_main = glut_window;
@@ -507,7 +528,7 @@ void FillListBox()
         GeOb * ob = geob_win->GetObj(i);
         if (ob == NULL) continue;
         ob->GetName(ltxt);
-        Fl_Button* b = new Fl_Button(xx, xx, 25, 25);
+        Fl_Button* b = new Fl_Button(xx, xx, 200, 25);
         b->copy_label(ltxt);
         b->callback(listbox_cb);
         b->user_data((void*)ob);
@@ -534,7 +555,7 @@ int main(int argc, char **argv)
   geob_win = new GeObWindow();
 
   // создаем главное окно и виджеты
-  MakeForm(argv[0]);
+  MakeForm(u8"Beat - препроцессор");
 
   // создаем главное Fl_Glut_Window* glut_win_main
   MakeGlWindow(bDouble);
@@ -635,7 +656,12 @@ int main(int argc, char **argv)
       delete camera_xyz_dlg;
       camera_xyz_dlg = NULL;
   }
-  return 0; 
+  if (camera_sph_dlg != NULL)
+  {
+      delete camera_sph_dlg;
+      camera_sph_dlg = NULL;
+  }
+  return 0;
 }
 //==
 

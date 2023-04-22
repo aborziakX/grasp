@@ -33,7 +33,7 @@ message(STATUS "FLTK_FOUND                  = ${FLTK_FOUND}")
 message(STATUS "FLTK_COMMIT                 = '${FLTK_COMMIT}'")
 message(STATUS "FLTK_INCLUDE_DIRS           = ${FLTK_INCLUDE_DIRS}")
 
-add_executable(beat WIN32 MACOSX_BUNDLE "beat.cxx;GeObWindow.cxx;GeOb.cxx;Cube.cxx;Vec3.cxx;Cyl.cxx;Lines.cxx;Dialogs.cxx")
+add_executable(beat WIN32 MACOSX_BUNDLE "beat.cxx;GeObWindow.cxx;GeOb.cxx;Cube.cxx;Vec3.cxx;Cyl.cxx;Lines.cxx;Dialogs.cxx;beat_ini.cxx")
 if (APPLE)
   target_link_libraries(beat "-framework cocoa")
 endif (APPLE)

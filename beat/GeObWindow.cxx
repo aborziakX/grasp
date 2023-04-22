@@ -145,7 +145,7 @@ void GeObWindow::Draw() {
         gl_color(FL_GRAY);
         glDisable(GL_DEPTH_TEST);
         gl_font(FL_HELVETICA_BOLD, 16);
-        gl_draw(wire ? "Cube: wire" : "Cube: flat", -4.5f, -4.5f);
+        gl_draw("Beat", -4.5f, -4.5f);
         glEnable(GL_DEPTH_TEST);
     }
 

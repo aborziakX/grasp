@@ -72,6 +72,7 @@ bool CameraXyzDialog::GetPos(double& x, double& y, double& z,
     }
     return rc;
 }
+
 void CameraXyzDialog::Init(GeObWindow* geob_win)
 {
     char buf[33];
@@ -92,6 +93,57 @@ void CameraXyzDialog::Init(GeObWindow* geob_win)
 
     sprintf_s(buf, "%.3f", geob_win->GetZTop());
     inTopZ.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetXLook());
+    inLookX.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetYLook());
+    inLookY.value(buf);
+
+    sprintf_s(buf, "%.3f", geob_win->GetZLook());
+    inLookZ.value(buf);
+}
+//==
+
+//==камера сферические координаты
+CameraSphDialog::CameraSphDialog(Fl_Callback* cb) :
+    Fl_Window(200, 100, 300, 300, u8"камера сферические")
+{
+    button_Ok.callback(cb, &m1);
+    button_Cancel.callback(cb, &m2);
+}
+
+bool CameraSphDialog::GetPos(double& di, double& az, double& el,
+    double& xLook, double& yLook, double& zLook)
+{
+    bool rc = true;
+    try {
+        di = atof(inDi.value());
+        az = atof(inAz.value());
+        el = atof(inEl.value());
+        xLook = atof(inLookX.value());
+        yLook = atof(inLookY.value());
+        zLook = atof(inLookZ.value());
+    }
+    catch (...) {
+        rc = false;
+    }
+    return rc;
+}
+
+void CameraSphDialog::Init(GeObWindow* geob_win)
+{
+    char buf[33];
+    double di, az, el;
+    geob_win->GetPolar(di, az, el);
+    sprintf_s(buf, "%.3f", di);
+    inDi.value(buf);
+
+    sprintf_s(buf, "%.3f", az);
+    inAz.value(buf);
+
+    sprintf_s(buf, "%.3f", el);
+    inEl.value(buf);
 
     sprintf_s(buf, "%.3f", geob_win->GetXLook());
     inLookX.value(buf);

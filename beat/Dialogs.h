@@ -36,7 +36,7 @@ class AddCubeDialog : public Fl_Window
         bool GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc);
 
     private:
-        Fl_Button button_Ok{ 10, 220, 100, 25, u8"Сохранить" };
+        Fl_Button button_Ok{ 10, 220, 100, 25, u8"Применить" };
         Fl_Button button_Cancel{ 150, 220, 100, 25, u8"Отмена" };
         int m1 = 1; //Ok
         int m2 = 2; //Cancel
@@ -62,7 +62,7 @@ public:
         double& xTop, double& yTop, double& zTop);
 
 private:
-    Fl_Button button_Ok{ 10, 220, 100, 25, u8"Сохранить" };
+    Fl_Button button_Ok{ 10, 220, 100, 25, u8"Применить" };
     Fl_Button button_Cancel{ 150, 220, 100, 25, u8"Отмена" };
     int m1 = 1; //Ok
     int m2 = 2; //Cancel
@@ -77,6 +77,32 @@ private:
     Fl_Input inTopX{ 290, 10, 70, 20, u8"xTop:" };
     Fl_Input inTopY{ 290, 40, 70, 20, u8"yTop:" };
     Fl_Input inTopZ{ 290, 70, 70, 20, u8"zTop:" };
+};
+
+/**
+@class   CameraSphDialog
+@brief   камера сферические координаты
+*/
+class CameraSphDialog : public Fl_Window
+{
+public:
+    CameraSphDialog(Fl_Callback* cb);
+    void Init(GeObWindow* go);
+    bool GetPos(double& di, double& az, double& el,
+        double& xLook, double& yLook, double& zLook);
+
+private:
+    Fl_Button button_Ok{ 10, 220, 100, 25, u8"Применить" };
+    Fl_Button button_Cancel{ 150, 220, 100, 25, u8"Отмена" };
+    int m1 = 1; //Ok
+    int m2 = 2; //Cancel
+    Fl_Input inDi{ 100, 10, 70, 20, u8"дистанция:" };
+    Fl_Input inAz{ 100, 40, 70, 20, u8"азимут:" };
+    Fl_Input inEl{ 100, 70, 70, 20, u8"возвышение:" };
+
+    Fl_Input inLookX{ 100, 100, 70, 20, u8"xLook:" };
+    Fl_Input inLookY{ 100, 130, 70, 20, u8"yLook:" };
+    Fl_Input inLookZ{ 100, 160, 70, 20, u8"zLook:" };
 };
 
 } // namespace Grasp
