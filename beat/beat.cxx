@@ -4,9 +4,6 @@
 // [program/widget] is based in part on the work of the Fast Light Tool Kit (FLTK) project (https://www.fltk.org)
 //
 
-#ifndef _WINDOWS
-#define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
-#endif
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Gl_Window.H>
@@ -21,14 +18,28 @@
 #include <FL/Fl_Multiline_Output.H>
 #include <FL/Fl_Pack.H>
 #include <FL/Fl_Scroll.H>
+#include <FL/Fl_Native_File_Chooser.H>
 
 #include <stdlib.h>
+#include <stdio.h>  /* defines FILENAME_MAX */
+#ifdef _WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
+#endif
 
 #include "GeObWindow.h"
 #include "Cube.h"
 #include "Cyl.h"
 #include "Lines.h"
 #include "Dialogs.h"
+#include "beat_ini.h"
+
+#define RUSSIAN
+#include "messages.h"
 
 using namespace Grasp;
 
@@ -44,6 +55,7 @@ Fl_Scroll* scroll;
 GeObWindow* geob_win = NULL; // список геометрических объектов
 GeOb* geobCurrent = NULL; // текущий объект
 Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в LB
+BeatIni* beatIni = NULL; // загрузчик ini
 
 // диалоги
 Pass_Window* pass_window = NULL;
@@ -59,6 +71,8 @@ CameraSphDialog* camera_sph_dlg = NULL;
 #define MARGIN3 (MARGIN * 3)
 #define MARGIN4 (MARGIN * 4)
 
+char cCurrentPath[FILENAME_MAX]; // для текущей директории
+
 void FillListBox();
 
 // Помощь
@@ -70,18 +84,66 @@ void help_cb(Fl_Widget *, void *)
   );
 }
 
+//Открыть ini
 void file_open_cb(Fl_Widget*, void*)
 {
-}
-void file_save_cb(Fl_Widget*, void*)
-{
+    if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
+    {
+        return;
+    }
+    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+    //fl_message(cCurrentPath);
+    //return;
+
+    string sIniFile;
+    // создать "нативный быбор файла" диалог
+    Fl_Native_File_Chooser native;
+    native.title(MES_SELECT_FILE);
+    native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+    native.filter(MES_FILE_FILTER);
+    native.directory(cCurrentPath);
+    //native.preset_file(G_filename->value());
+    // Show native chooser
+    switch (native.show()) {
+    case -1: //G_tty->printf("ERROR: %s\n", native.errmsg()); 
+        fl_beep(); break;      // ERROR
+    case  1: //G_tty->printf("*** CANCEL\n"); 
+        break;           // CANCEL
+    default:                                                            // PICKED FILE
+        if (native.filename()) {
+            sIniFile = native.filename();
+            //G_tty->printf("filename='%s'\n", native.filename());
+        }
+        else {
+            fl_message("NULL");
+            //G_tty->printf("filename='(null)'\n");
+        }
+        break;
+    }
+    if (sIniFile.empty()) return;
+
+    //fl_message(sIniFile.c_str());
+    if (beatIni == NULL)
+    {
+        beatIni = new BeatIni();
+        beatIni->ErrorLog(L"Я started2!");
+        //const wstring sMessageJpn[] = { L"Я started!" };
+        //beatIni->WriteUnicodeUTF8toFile("error.log", sMessageJpn, 1, true);
+    }
+    //beatIni->LoadIni(sIniFile.c_str());
+    beatIni->ReadUtf8UnicodeFile(sIniFile.c_str());  //test  
 }
 
+//Сохранить ini
+void file_save_cb(Fl_Widget*, void*)
+{
+    //fl_message(u8"
+}
 
 // нажатие кнопки в listbox
 void listbox_cb(Fl_Widget* bt, void* ud)
 {
-    char buf[333];
+    //char buf[333] = { 0 };
     if (ud != NULL)
     {
         //((GeOb*)ud)->GetName(buf);
@@ -115,7 +177,7 @@ void delete_cb(Fl_Widget*, void* ud)
         fl_message(u8"Объект не выбран!");
         return;
     }
-    char buf[333], buf2[333];
+    char buf[333] = { 0 }, buf2[333] = { 0 };
     geobCurrent->GetName(buf2);
     snprintf(buf, 333, u8"[%s] будет удален. Продолжить?", buf2);
     int rep = fl_choice(buf, u8"Нет", u8" Да ", 0L);
@@ -260,7 +322,7 @@ void UpdatePosInfo()
     if (done == 1) return;
     double distance, azimut, elevation;
     geob_win->GetPolar(distance, azimut, elevation);
-    char buf[33];
+    char buf[33] = { 0 };
     sprintf_s(buf, "d=%.3f a=%.3f e=%.3f ", distance, azimut, elevation);
     text2->value(buf);
 }
@@ -429,7 +491,7 @@ void MakeForm(const char *name)
   int rt_grp_x = ct_grp_x + ct_grp_w + gl_w + MARGIN2,
       rt_grp_y = ct_grp_y, 
       rt_grp_h = ct_grp_h;*/
-  char buf[33];
+  //char buf[33] = { 0 };
 
   // главное окно
   form = new Fl_Window(form_w, form_h, name);
@@ -633,6 +695,13 @@ int main(int argc, char **argv)
       break; // 'exit button' была нажата
 
     Fl::wait(0.01); // заснуть в секундах = 10 ms
+  }
+
+  // удалить загрузчик ini
+  if (beatIni != NULL)
+  {
+    delete beatIni;
+    beatIni = NULL;
   }
 
   // удалить главное окно и виджеты

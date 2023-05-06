@@ -51,65 +51,65 @@ public:
   /**
   получить dRotateZ
   */
-  float GetRotateZ() { return dRotateZ; }
+  double GetRotateZ() { return dRotateZ; }
   /**
   установить dRotateZ
   */
-  void SetRotateZ(float _dRotateZ) { dRotateZ = _dRotateZ; }
+  void SetRotateZ(double _dRotateZ) { dRotateZ = _dRotateZ; }
 
   /**
   получить dRotateX
   */
-  float GetRotateX() { return dRotateX; }
+  double GetRotateX() { return dRotateX; }
   /**
   установить dRotateX
   */
-  void SetRotateX(float _dRotateX) { dRotateX = _dRotateX; }
+  void SetRotateX(double _dRotateX) { dRotateX = _dRotateX; }
 
   /**
   получить dRotateY
   */
-  float GetRotateY() { return dRotateY; }
+  double GetRotateY() { return dRotateY; }
   /**
   установить dRotateY
   */
-  void SetRotateY(float _dRotateY) { dRotateY = _dRotateY; }
+  void SetRotateY(double _dRotateY) { dRotateY = _dRotateY; }
 
   /**
   получить dShiftX
   */
-  float GetShiftX() { return dShiftX; }
+  double GetShiftX() { return dShiftX; }
   /**
   установить dShiftX
   */
-  void SetShiftX(float _dShiftX) { dShiftX = _dShiftX; }
+  void SetShiftX(double _dShiftX) { dShiftX = _dShiftX; }
 
   /**
   получить dShiftY
   */
-  float GetShiftY() { return dShiftY; }
+  double GetShiftY() { return dShiftY; }
   /**
   установить dShiftY
   */
-  void SetShiftY(float _dShiftY) { dShiftY = _dShiftY; }
+  void SetShiftY(double _dShiftY) { dShiftY = _dShiftY; }
 
   /**
   получить dShiftZ
   */
-  float GetShiftZ() { return dShiftZ; }
+  double GetShiftZ() { return dShiftZ; }
   /**
   установить dShiftZ
   */
-  void SetShiftZ(float _dShiftZ) { dShiftZ = _dShiftZ; }
+  void SetShiftZ(double _dShiftZ) { dShiftZ = _dShiftZ; }
 
   /**
   получить xCam
   */
-  float GetXCam() { return (float)vecCam.GetX(); }
+  double GetXCam() { return vecCam.GetX(); }
   /**
   установить xCam
   */
-  void SetXCam(float f) 
+  void SetXCam(double f)
   {
       vecCam.SetX(f);
   };
@@ -117,11 +117,11 @@ public:
   /**
   получить yCam
   */
-  float GetYCam() { return (float)vecCam.GetY(); }
+  double GetYCam() { return vecCam.GetY(); }
   /**
   установить yCam
   */
-  void SetYCam(float f)
+  void SetYCam(double f)
   {
       vecCam.SetY(f);
   };
@@ -129,11 +129,11 @@ public:
   /**
   получить zCam
   */
-  float GetZCam() { return (float)vecCam.GetZ(); }
+  double GetZCam() { return vecCam.GetZ(); }
   /**
   установить zCam
   */
-  void SetZCam(float f) 
+  void SetZCam(double f)
   {
       vecCam.SetZ(f);
   };
@@ -141,11 +141,11 @@ public:
   /**
   получить xLook
   */
-  float GetXLook() { return (float)vecLook.GetX(); }
+  double GetXLook() { return vecLook.GetX(); }
   /**
   установить xLook
   */
-  void SetXLook(float f)
+  void SetXLook(double f)
   {
       vecLook.SetX(f);
   };
@@ -153,11 +153,11 @@ public:
   /**
   получить yLook
   */
-  float GetYLook() { return (float)vecLook.GetY(); }
+  double GetYLook() { return vecLook.GetY(); }
   /**
   установить yLook
   */
-  void SetYLook(float f)
+  void SetYLook(double f)
   {
       vecLook.SetY(f);
   };
@@ -165,11 +165,11 @@ public:
   /**
   получить zLook
   */
-  float GetZLook() { return (float)vecLook.GetZ(); }
+  double GetZLook() { return vecLook.GetZ(); }
   /**
   установить zLook
   */
-  void SetZLook(float f)
+  void SetZLook(double f)
   {
       vecLook.SetZ(f);
   };
@@ -177,11 +177,11 @@ public:
   /**
   получить xTop
   */
-  float GetXTop() { return (float)vecTop.GetX(); }
+  double GetXTop() { return vecTop.GetX(); }
   /**
   установить xTop
   */
-  void SetXTop(float f)
+  void SetXTop(double f)
   {
       vecTop.SetX(f);
   };
@@ -189,11 +189,11 @@ public:
   /**
   получить yTop
   */
-  float GetYTop() { return (float)vecTop.GetY(); }
+  double GetYTop() { return vecTop.GetY(); }
   /**
   установить yTop
   */
-  void SetYTop(float f)
+  void SetYTop(double f)
   {
       vecTop.SetY(f);
   };
@@ -201,11 +201,11 @@ public:
   /**
   получить zTop
   */
-  float GetZTop() { return (float)vecTop.GetZ(); }
+  double GetZTop() { return vecTop.GetZ(); }
   /**
   установить zTop
   */
-  void SetZTop(float f)
+  void SetZTop(double f)
   {
       vecTop.SetZ(f);
   };
@@ -255,7 +255,7 @@ public:
   void Delete(GeOb* cube);
 
   int wire = 0;
-  float lasttime = 0.0, size = 1.0;
+  double lasttime = 0.0, size = 1.0;
   Fl_Glut_Window* win_glut = NULL;
 
 protected:
@@ -268,8 +268,8 @@ protected:
   Vec3 vecTop; ///< вертикальный вектор камеры
 
 private:
-  float dRotateZ = 0, dRotateX = 0, dRotateY = 0;
-  float dShiftZ = 0, dShiftX = 0, dShiftY = 0;
+  double dRotateZ = 0, dRotateX = 0, dRotateY = 0;
+  double dShiftZ = 0, dShiftX = 0, dShiftY = 0;
   //??45
   double distance = 9.0, azimut = (MY_PI * 45.0 / 180.0), elevation = (MY_PI * 30.0 / 180.0); ///< камера в полярных координатах (радианы)
 
