@@ -3,13 +3,19 @@
 
 #ifdef RUSSIAN
 
-#define MES_SELECT_FILE u8"Выбор файла"
-#define MES_FILE_FILTER u8"Ini Файлы\t*.ini"
+#define MES_SELECT_TEMPL u8"Выбор шаблона проекта"
+#define MES_SELECT_FILE u8"Выбор файла проекта"
+#define MES_BTT_FILTER u8"Bpj Файлы\t*.btt"
+#define MES_BPJ_FILTER u8"Bpj Файлы\t*.bpj"
+#define MES_INI_FILTER u8"Ini Файлы\t*.ini"
 
 #else
 
-#define MES_SELECT_FILE u8"Select file"
-#define MES_FILE_FILTER u8"Ini Files\t*.ini"
+#define MES_SELECT_TEMPL u8"Select template file"
+#define MES_SELECT_FILE u8"Select project file"
+#define MES_BTT_FILTER u8"Bpj Files\t*.btt"
+#define MES_BPJ_FILTER u8"Bpj Files\t*.bpj"
+#define MES_INI_FILTER u8"Ini Files\t*.ini"
 
 #endif
 

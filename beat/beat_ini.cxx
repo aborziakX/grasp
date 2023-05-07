@@ -3,12 +3,14 @@
 namespace Grasp {
   BeatIni::BeatIni() 
   {
-    lasttime = 0.0;
+	  separa = ";";
+	  replace_arr[0] = ".";
+	  replace_arr[1] = ",";
   }
 
   BeatIni::~BeatIni() 
   {
-    lasttime = 0.0;
+	  IniUnload();
   }
 
   void BeatIni::Defaults()
@@ -288,6 +290,7 @@ namespace Grasp {
 	  }*/
 	  return 0;
   }
+
   //return a string without leading and tailing spaces
   char* BeatIni::trim(char* buf)
   {
@@ -310,7 +313,18 @@ namespace Grasp {
 	  return buf + iStart;
   }
 
-  //log the error to "error.log"
+  string BeatIni::trim(string* s)
+  {
+	  int len = s->size();
+	  char* buf = new char[len + 1];
+	  strcpy_s(buf, len + 1, s->c_str());
+	  char * buf_2 = trim(buf);
+	  string s2(buf_2);
+	  delete[] buf;
+	  return s2;
+  }
+
+  /*//log the error to "error.log"
   void BeatIni::errorLog(const char* sFormat, ...)
   {
 	  FILE* fp;
@@ -330,11 +344,11 @@ namespace Grasp {
 		  vfprintf(fp, sFormat, lst);
 		  fclose(fp);
 	  }
-  }
+  }*/
 
   using sysclock_t = std::chrono::system_clock;
   // пишем в лог UTF-8 данные
-  void BeatIni::ErrorLog(const wstring ws)
+  void BeatIni::ErrorLog(const wstring & ws)
   {
 	  std::wofstream outFile("error.log", std::ios_base::app);
 	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
@@ -383,75 +397,269 @@ namespace Grasp {
 
 	  wif.close();
 
-	  /* OR 
+  }
+
+  //считать из UTF-8 файла в Unicode-16 строку
+  std::wstring BeatIni::readFile(const char* filename)
+  {
+	  std::wifstream wif(filename);
+	  wif.imbue(std::locale(std::locale::classic(), new std::codecvt_utf8<wchar_t>));
 	  std::wstringstream wss;
-      wss << wif.rdbuf();
-	  */
+	  wss << wif.rdbuf();
+	  wif.close();
+	  return wss.str();
+  }
+
+  // convert UTF-8 string to wstring
+  std::wstring BeatIni::utf8_to_wstring(const std::string& str)
+  {
+#ifdef _WINDOWS
+	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+	  return myconv.from_bytes(str);
+#else
+	  if (str.empty()) {
+		  return L"";
+	  }
+	  unsigned len = str.size() + 1;
+	  setlocale(LC_CTYPE, "en_US.UTF-8");
+	  wchar_t* p = new wchar_t[len];
+	  mbstowcs(p, str.c_str(), len);
+	  std::wstring w_str(p);
+	  delete[] p;
+	  return w_str;
+#endif
+  }
+
+  // convert wstring to UTF-8 string
+  std::string BeatIni::wstring_to_utf8(const std::wstring& str)
+  {
+#ifdef _WINDOWS
+	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+	  return myconv.to_bytes(str);
+#else
+	  if (str.empty()) {
+		  return "";
+	  }
+	  unsigned len = str.size() * 4 + 1;
+	  setlocale(LC_CTYPE, "en_US.UTF-8");
+	  char* p = new char[len];
+	  wcstombs(p, str.c_str(), len);
+	  std::string str2(p);
+	  delete[] p;
+	  return str2;
+#endif
+  }
+
+  //сформировать вектор из указателей на string
+  void BeatIni::split2vector(char* msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart)
+  {
+	  if (bCleanByStart)
+	  {
+		  for (int k = 0; k < vec.size(); k++)
+		  {
+			  delete vec[k];
+		  }
+		  vec.resize(0);
+	  }
+	  if (msg == NULL || strlen(msg) == 0)
+		  return;
+	  char ss[2] = { sepa, 0 };
+	  char * p = msg, * p_2;
+	  while (true)
+	  {
+		  p_2 = strstr(p, ss);
+		  if (p_2 == NULL)
+		  {
+			  vec.push_back(new std::string(p));
+			  break;
+		  }
+		  else
+		  {
+			  *p_2 = 0;
+			  vec.push_back(new std::string(p));
+			  p = p_2 + 1;
+		  }
+	  }
   }
 
   int BeatIni::IniParse(const char* fname)
   {
-	  FILE* fp;
-	  char buf[1256], * cpos, * sKey, * sVal;
+	  wstring data = readFile(fname);
+	  string d8 = wstring_to_utf8(data);
+	  int len = d8.size();
+	  char* buf = new char[len + 1];
+	  strcpy_s(buf, len + 1, d8.c_str());
 
-	  if ((fp = fopen(fname, "r")) != NULL)
+	  vector<string*> vec;
+	  split2vector(buf, '\n', vec);
+	  int vl = vec.size();
+	  delete[] buf;
+
+	  // trim strings
+	  for (int k = 0; k < vl; k++)
 	  {
-		  while (!feof(fp))
+		  string * s = vec[k];
+		  const char* da = s->c_str();
+		  len = s->size();
+		  if (len == 0) continue;
+		  buf = new char[len + 1];
+		  strcpy_s(buf, len + 1, da);
+
+		  char* buf_2 = trim(buf);
+		  if (buf_2[0] == 0 || buf_2[0] == '#')
 		  {
-			  if (fgets(buf, sizeof(buf), fp) == NULL)
-			  {
-				  if (ferror(fp))
-				  {
-					  sprintf(buf, "ParseIni: failed in %s", fname);
-					  errorLog(buf);
-					  return -1;
-				  }
-				  break;
-			  }
-			  if (buf[0] == '#') continue;	//comment line
-
-			  cpos = strchr(buf, '=');
-			  if (cpos != NULL)
-			  {	//key=value
-
-				  *cpos++ = 0;	//break the string
-				  sKey = trim(buf);
-
-				  sVal = trim(cpos);
-
-				  if (ini_total < INI_MAX)
-				  {
-					  ini_key[ini_total] = new char[strlen(sKey) + 1];
-					  strcpy(ini_key[ini_total], sKey);
-					  ini_val[ini_total] = new char[strlen(sVal) + 1];
-					  strcpy(ini_val[ini_total], sVal);
-					  ini_total++;
-				  }
-			  }
+			  delete[] buf;
+			  continue;
 		  }
-		  fclose(fp);
-		  return 0;
+
+		  char* cpos = strchr(buf_2, '=');
+		  if (cpos != NULL)
+		  {	  //key=value
+			  *cpos++ = 0;	//break the string
+			  char* sKey = trim(buf_2);
+			  char* sVal = trim(cpos);
+			  lstKey.push_back(new string(sKey));
+			  lstVal.push_back(new string(sVal));
+		  }
+		  else if (buf_2[0] == '[')
+		  {   //section starts
+			  lstKey.push_back(new string(buf_2));
+			  lstVal.push_back(new string());
+		  }
+		  delete[] buf;
 	  }
 
-	  return -1;
+	  for (int k = 0; k < vl; k++)
+	  {
+		  delete vec[k];
+	  }
+
+	  LoadDialogs();
+
+	  return lstKey.size();
+  }
+
+  void BeatIni::LoadDialogs()
+  {
+	  int i;
+	  TDialog* dlg = NULL;
+	  std::vector<std::string*> vec;
+	  for (i = 0; i < lstKey.size(); i++)
+	  {
+		  string key = *lstKey[i];
+		  string val = *lstVal[i];
+
+		  if (key == "separa")
+		  {
+			  separa = val;
+		  }
+		  else if (key == "replace_arr_0")
+		  {
+			  replace_arr[0] = val;
+		  }
+		  else if (key == "replace_arr_1")
+		  {
+			  replace_arr[1] = val;
+		  }
+		  else if (key == "[Controls]")
+		  {
+			  dlg = NULL;
+		  }
+		  else if (key == "features")
+		  {			  
+			  dlg = &features;
+			  dlg->dname = val;
+		  }
+		  else if (key.find("dialog_") == 0)
+		  {
+			  dlg = new TDialog();
+			  dlg->dname = val;
+			  lstDlg.push_back(dlg);
+		  }
+		  else if (dlg != NULL)
+		  {
+			  int len = val.size();
+			  char* buf = new char[len + 1];
+			  strcpy_s(buf, len + 1, val.c_str());
+			  split2vector(buf, '|', vec);
+			  delete[] buf;
+			  if (vec.size() != 3)
+			  {				  
+				  continue;
+			  }
+			  cout << key << " " << *vec[0] << " " << *vec[1] << " " << *vec[2] << "\n"; 
+
+			  TParam* pParam = new TParam();
+			  pParam->pname = key;
+			  pParam->pvalue = trim(vec[0]);	//default
+			  pParam->pcurr = trim(vec[0]);	//current
+
+			  pParam->pcomment = trim(vec[2]);
+
+			  string tt = trim(vec[1]);
+			  if (tt.find("string") == 0)
+				  pParam->ptype = 1;
+			  //??else if( tt.indexOf("slider") == 0 )
+				  //??pParam->ptype = 2;
+			  else if (tt.find("combo") == 0)
+				  pParam->ptype = 3;
+			  else if (tt.find("int") == 0)
+				  pParam->ptype = 4;
+			  else pParam->ptype = 0;	//double
+
+			  int i0 = tt.find("{");
+			  int i1 = tt.find("}");
+			  //cout << "i0 " << i0 << ", i1 " << i1;
+			  if (i0 < i1)
+			  {
+				  len = i1 - i0 - 1;
+				  buf = new char[len + 2];
+				  const char* ptr = tt.c_str() + i0 + 1;
+				  strcpy_s(buf, len + 2, ptr);
+				  buf[len] = 0;
+				  split2vector(buf, ',', vec);
+				  delete[] buf;
+
+				  for (int k = 0; k < vec.size(); k++)
+				  {
+					  string* qq = new string(vec[k]->c_str());
+					  pParam->lstCombo.push_back(qq);
+				  }
+			  }
+
+			  dlg->lstParams.push_back(pParam);
+		  }
+	  }
+	  split2vector(NULL, '|', vec); //clean vec
+	  //IniUnload();
   }
 
   void BeatIni::IniUnload()
   {
-	  for (int i = 0; i < ini_total; i++)
+	  for (int k = 0; k < lstKey.size(); k++)
 	  {
-		  delete ini_key[i];
-		  delete ini_val[i];
+		  delete lstKey[k];
 	  }
-	  ini_total = 0;
+	  lstKey.resize(0);
+
+	  for (int k = 0; k < lstVal.size(); k++)
+	  {
+		  delete lstVal[k];
+	  }
+	  lstVal.resize(0);
   }
 
-  char* BeatIni::IniFindValue(const char* key)
+  const char* BeatIni::IniFindValue(const char* look)
   {
-	  for (int i = 0; i < ini_total; i++)
+	  for (int i = 0; i < lstKey.size(); i++)
 	  {
-		  if (strcmp(key, ini_key[i]) == 0)
-			  return ini_val[i];
+		  string key = *lstKey[i];
+		  string val = *lstVal[i];
+
+		  if (key == look)
+		  {
+			  return val.c_str();
+		  }
 	  }
 	  return NULL;
   }

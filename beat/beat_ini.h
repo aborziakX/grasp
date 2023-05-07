@@ -12,6 +12,7 @@
 #include <codecvt>
 #include <iostream>
 #include <chrono>
+#include <cstring>
 
 using namespace std;
 
@@ -122,47 +123,53 @@ public:
   vector<TMolecule*> TMoleculeList;
   TMolecule defmat;
 
-  vector<TDialog*> lstDlg;	//list of dialogs
+  vector<TDialog*> lstDlg;	///< list of dialogs
   TDialog features;
 
-  int ini_total;
-  char* ini_key[INI_MAX];
-  char* ini_val[INI_MAX];
-  short* objectId;	//to generate space file
+  vector<string*> lstKey;	///< list of keys
+  vector<string*> lstVal;	///< list of values
 
   char* trim(char* buf);
-  void errorLog(const char* sFormat, ...);
+  string trim(string* buf);
+  //void errorLog(const char* sFormat, ...);
   int IniParse(const char* fname);
   void IniUnload();
-  char* IniFindValue(const char* key);
+  const char* IniFindValue(const char* key);
   //char* IniFindValuePos(const char* key, int& npos);
   int LoadIni(const char* fname);
   void Defaults();
+  void LoadDialogs();
 
   void WriteUnicodeUTF8toFile(const char* myFile, const wstring ws[], size_t nSize, bool append = false);
   void ReadUtf8UnicodeFile(const char* filename);
-  void ErrorLog(const wstring ws);
 
   /**
-  get dRotateZ
+  считать из UTF-8 файла в Unicode-16 строку
   */
-  float GetRotateZ() { return dRotateZ; }
+  static std::wstring readFile(const char* filename);
   /**
-  set dRotateZ
+  сохранить сообщение в "error.log"
   */
-  void SetRotateZ(float _dRotateZ) { dRotateZ = _dRotateZ; }
+  static void ErrorLog(const wstring & ws);
 
-
-  int wire = 0;
-  float lasttime = 0.0, size = 1.0, speed = 0.0;
+  /**
+  преобразовать из UTF-8 в Unicode-16
+  */
+  static std::wstring utf8_to_wstring(const std::string& str);
+  /**
+  преобразовать из Unicode-16 в UTF-8
+  */
+  static std::string wstring_to_utf8(const std::wstring& str);
+  /**
+  сформировать вектор из указателей на string
+  */
+  static void split2vector(char* msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart = true);
 
 protected:
 private:
-  int nGadgets;///< число датчиков давления. Датчики регистрируют давление, скорость, плотность, температуру, состав смеси. Далее должны следовать группы из трех параметров числом nGadgets. В каждую группу входит 
-
-  float dRotateZ = 0, dRotateX = 0, dRotateY = 0; ///< bla-bla
-  float dShiftZ = 0, dShiftX = 0, dShiftY = 0, dCamZ = 0;
-
+  int nGadgets = 0;///< число датчиков давления. Датчики регистрируют давление, скорость, плотность, температуру, состав смеси. Далее должны следовать группы из трех параметров числом nGadgets. В каждую группу входит 
+  string separa;
+  string replace_arr[2];
 };
 
 } // namespace Grasp

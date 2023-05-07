@@ -9,6 +9,9 @@
 
 #include <stdlib.h>
 #include "GeObWindow.h"
+#ifndef _WINDOWS
+#define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
+#endif
 
 namespace Grasp {
 /**

@@ -84,23 +84,23 @@ void help_cb(Fl_Widget *, void *)
   );
 }
 
-//Открыть ini
-void file_open_cb(Fl_Widget*, void*)
+//выбор файла
+string file_open_dialog(const char * sTitle, const char * sFilter)
 {
     if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
     {
-        return;
+        return "";
     }
     cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
     //fl_message(cCurrentPath);
-    //return;
+    //return "";
 
     string sIniFile;
     // создать "нативный быбор файла" диалог
     Fl_Native_File_Chooser native;
-    native.title(MES_SELECT_FILE);
+    native.title(sTitle);
     native.type(Fl_Native_File_Chooser::BROWSE_FILE);
-    native.filter(MES_FILE_FILTER);
+    native.filter(sFilter);
     native.directory(cCurrentPath);
     //native.preset_file(G_filename->value());
     // Show native chooser
@@ -120,6 +120,13 @@ void file_open_cb(Fl_Widget*, void*)
         }
         break;
     }
+    return sIniFile;
+}
+
+//Открыть Проект
+void file_open_cb(Fl_Widget*, void*)
+{
+    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER);
     if (sIniFile.empty()) return;
 
     //fl_message(sIniFile.c_str());
@@ -130,14 +137,55 @@ void file_open_cb(Fl_Widget*, void*)
         //const wstring sMessageJpn[] = { L"Я started!" };
         //beatIni->WriteUnicodeUTF8toFile("error.log", sMessageJpn, 1, true);
     }
-    //beatIni->LoadIni(sIniFile.c_str());
-    beatIni->ReadUtf8UnicodeFile(sIniFile.c_str());  //test  
+    int n = beatIni->LoadIni(sIniFile.c_str());
+    cout << "\nn=" << n;
+    //beatIni->ReadUtf8UnicodeFile(sIniFile.c_str());  //test  
+    //wstring data = beatIni->readFile(sIniFile.c_str());
+    //wcout << "\ndata-" << data; //Linux ok
+    //std::string ss = BeatIni::wstring_to_utf8(data);
+    //text2->value(ss.c_str());
+
+    text2->value(beatIni->lstVal[1]->c_str()); //test
 }
 
-//Сохранить ini
+//Сохранить Проект
 void file_save_cb(Fl_Widget*, void*)
 {
-    //fl_message(u8"
+    fl_message(u8"file_save_cb");
+}
+
+//Создать Проект
+void file_create_cb(Fl_Widget*, void*)
+{
+    fl_message(u8"file_create_cb");
+}
+
+//Сохранить как Проект
+void file_save_as_cb(Fl_Widget*, void*)
+{
+    fl_message(u8"file_save_as_cb");
+}
+
+//Генерировать ini
+void file_gener_cb(Fl_Widget*, void*)
+{
+    fl_message(u8"file_gener_cb");
+}
+
+//Геометрия/Изменить
+void edit_cb(Fl_Widget*, void*)
+{
+    fl_message(u8"edit_cb");
+}
+
+//Геометрия/Свойства 
+void features_cb(Fl_Widget*, void*)
+{
+    if (beatIni == NULL)
+    {
+        fl_message(u8"Нет проекта");
+        return;
+    }
 }
 
 // нажатие кнопки в listbox
@@ -499,17 +547,22 @@ void MakeForm(const char *name)
 
   // меню
   Fl_Menu_Bar *menubar = new Fl_Menu_Bar(me_bar_x, me_bar_y, me_bar_w, me_bar_h);
-  menubar->add(u8"Файл/Открыть", FL_COMMAND + 'o', file_open_cb);
-  menubar->add(u8"Файл/Сохранить", FL_COMMAND + 's', file_save_cb);
-  menubar->add(u8"Файл/Выход", FL_COMMAND + 'q', exit_cb);
+  menubar->add(u8"Проект/Создать", FL_COMMAND + 'c', file_create_cb);
+  menubar->add(u8"Проект/Открыть", FL_COMMAND + 'o', file_open_cb);
+  menubar->add(u8"Проект/Сохранить", FL_COMMAND + 's', file_save_cb);
+  menubar->add(u8"Проект/Сохранить как", FL_COMMAND + 'a', file_save_as_cb);
+  menubar->add(u8"Проект/Генерировать ini", FL_COMMAND + 'g', file_gener_cb);
+  menubar->add(u8"Проект/Выход", FL_COMMAND + 'q', exit_cb);
 
-  menubar->add(u8"Проект/Камера XYZ", FL_COMMAND + 'x', camera_xyz_cb);
-  menubar->add(u8"Проект/Камера сферично", FL_COMMAND + 'r', camera_sph_cb);
+  menubar->add(u8"Камера/Камера XYZ", FL_COMMAND + 'x', camera_xyz_cb);
+  menubar->add(u8"Камера/Камера сферично", FL_COMMAND + 'r', camera_sph_cb);
 
   menubar->add(u8"Геометрия/Добавить/Куб", FL_COMMAND + 'u', add_cube_cb, (void*)&m1);
   menubar->add(u8"Геометрия/Добавить/Цилиндр", FL_COMMAND + 'y', add_cube_cb, (void*)&m2);
   menubar->add(u8"Геометрия/Добавить/Линии", FL_COMMAND + 'l', add_cube_cb, (void*)&m3);
+  menubar->add(u8"Геометрия/Изменить", FL_COMMAND + 'e', edit_cb);
   menubar->add(u8"Геометрия/Удалить", FL_COMMAND + 'd', delete_cb);
+  menubar->add(u8"Геометрия/Свойства", FL_COMMAND + 'h', features_cb);
 
   menubar->add(u8"Помощь", FL_COMMAND + 'h', help_cb);
 
@@ -604,6 +657,7 @@ void FillListBox()
 
 int main(int argc, char **argv) 
 {
+  SetConsoleOutputCP(CP_UTF8);
   Fl::use_high_res_GL(1);
   Fl::set_color(FL_FREE_COLOR, 255, 255, 0, 75);
   bool bDouble = false;
