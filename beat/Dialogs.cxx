@@ -156,4 +156,81 @@ void CameraSphDialog::Init(GeObWindow* geob_win)
 }
 //==
 
+//==физические свойства
+PhysPropDialog::PhysPropDialog(Fl_Callback* cb) :
+    Fl_Window(200, 100, 300, 350, u8"физические свойства")
+{
+    button_Ok.callback(cb, &m1);
+    button_Cancel.callback(cb, &m2);
+}
+
+bool PhysPropDialog::GetPos(double * di)
+{
+    bool rc = true;
+    try {
+        Fl_Input* field;
+        int i;
+        for (i = 0; i < 10 && i < mol->lstFeature.size(); i++)
+        {
+            field = fieldByIndex(i);
+
+            if (field->visible() == 0) continue;
+            di[0] = atof(field->value());
+        }
+
+        for (i = 0; i < 10 && i < mol->lstFeature.size(); i++)
+        {
+            field = fieldByIndex(i);
+
+            if (field->visible() == 0) continue;
+            TParam* par = mol->lstFeature[i];
+            par->pcurr = field->value();
+        }
+
+    }
+    catch (...) {
+        rc = false;
+    }
+    return rc;
+}
+
+Fl_Input* PhysPropDialog::fieldByIndex(int i)
+{
+    Fl_Input* field = NULL;
+    if (i == 0) field = &in1;
+    else if (i == 1) field = &in2;
+    else if (i == 2) field = &in3;
+    else if (i == 3) field = &in4;
+    else if (i == 4) field = &in5;
+    else if (i == 5) field = &in6;
+    else if (i == 6) field = &in7;
+    else if (i == 7) field = &in8;
+    else if (i == 8) field = &in9;
+    else if (i == 9) field = &in10;
+    return field;
+}
+
+void PhysPropDialog::Init(TMolecule* _mol)
+{
+    mol = _mol;
+    char buf[330];
+    Fl_Input* field;
+    int i;
+    for (i = 0; i < 10; i++)
+    {
+        field = fieldByIndex(i);
+
+        if (i < mol->lstFeature.size()) {
+            TParam* par = mol->lstFeature[i];
+            sprintf_s(buf, "%s", par->pcurr.c_str());
+            field->value(buf);
+            field->label( par->pcomment.c_str() );
+        }
+        else field->clear_visible();
+    }
+
+
+}
+//==
+
 }

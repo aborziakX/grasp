@@ -32,3 +32,6 @@ Linux
 CMakeLists.txt удалить
 Linux-C-MakeLists.txt переиеновать в CMakeLists.txt
 после cmake запускать для построения make .
+
+=============== beat
+В папке beat имеется файл beat.bpj. Его можно использовать для команды меню "Проект/Открыть".

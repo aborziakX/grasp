@@ -42,6 +42,8 @@ public:
   GeObWindow();
 
   ~GeObWindow(); 
+
+  void Reset(); ///< очистка
   
   /**
   рисовать список Геометрических объектов
@@ -275,6 +277,7 @@ private:
 
   bool bResort;
   void ResortFacet(Vec3& vecCam, Vec3& vecCamDir);
+  bool bCanDraw = true;
 };
 
 } // namespace Grasp

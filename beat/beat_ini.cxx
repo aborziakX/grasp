@@ -1,11 +1,13 @@
 ﻿#include "beat_ini.h"
 
 namespace Grasp {
-  BeatIni::BeatIni() 
+  BeatIni::BeatIni(GeObWindow* gw)
   {
 	  separa = ";";
 	  replace_arr[0] = ".";
 	  replace_arr[1] = ",";
+	  geob_win = gw;
+	  geob_win->Reset();
   }
 
   BeatIni::~BeatIni() 
@@ -21,14 +23,13 @@ namespace Grasp {
 	nGadgets = 0;
   }
 
-
+  //загрузить файл, создать управляющие структуры
   int BeatIni::LoadIni(const char* fname)
   {
 	  Defaults();
 	  IniUnload();
 	  int rc = IniParse(fname);
-	  if (rc != 0)
-		  return rc;
+	  return rc;
 	  /*char buf[330];
 	  char* val = IniFindValue("pProblemName");
 	  if (val != NULL) pProblemName = val;
@@ -288,10 +289,9 @@ namespace Grasp {
 			  else par->pcurr = par->pvalue;
 		  }
 	  }*/
-	  return 0;
   }
 
-  //return a string without leading and tailing spaces
+  // возвращает строку без пробелов вначале и вконце
   char* BeatIni::trim(char* buf)
   {
 	  int iStart = 0, iEnd = (int)strlen(buf) - 1;
@@ -313,9 +313,10 @@ namespace Grasp {
 	  return buf + iStart;
   }
 
+  // возвращает строку без пробелов вначале и вконце
   string BeatIni::trim(string* s)
   {
-	  int len = s->size();
+	  int len = (int)s->size();
 	  char* buf = new char[len + 1];
 	  strcpy_s(buf, len + 1, s->c_str());
 	  char * buf_2 = trim(buf);
@@ -362,7 +363,7 @@ namespace Grasp {
 	  outFile << buf << ws << "\n";
 	  outFile.close();
   }
-
+  //demo
   void BeatIni::WriteUnicodeUTF8toFile(const char* myFile, const wstring ws[], size_t nSize, bool append) 
   {
 	  std::wofstream outFile;
@@ -379,7 +380,7 @@ namespace Grasp {
 	  }
 	  outFile.close();
   }
-
+  //demo
   void BeatIni::ReadUtf8UnicodeFile(const char* filename)
   {
 	  std::ifstream wif(filename);
@@ -396,7 +397,6 @@ namespace Grasp {
 	  } while (!wif.eof());
 
 	  wif.close();
-
   }
 
   //считать из UTF-8 файла в Unicode-16 строку
@@ -413,14 +413,14 @@ namespace Grasp {
   // convert UTF-8 string to wstring
   std::wstring BeatIni::utf8_to_wstring(const std::string& str)
   {
-#ifdef _WINDOWS
+#ifdef CP11
 	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
 	  return myconv.from_bytes(str);
 #else
 	  if (str.empty()) {
 		  return L"";
 	  }
-	  unsigned len = str.size() + 1;
+	  int len = (int)str.size() + 1;
 	  setlocale(LC_CTYPE, "en_US.UTF-8");
 	  wchar_t* p = new wchar_t[len];
 	  mbstowcs(p, str.c_str(), len);
@@ -433,14 +433,14 @@ namespace Grasp {
   // convert wstring to UTF-8 string
   std::string BeatIni::wstring_to_utf8(const std::wstring& str)
   {
-#ifdef _WINDOWS
+#ifdef CP11
 	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
 	  return myconv.to_bytes(str);
 #else
 	  if (str.empty()) {
 		  return "";
 	  }
-	  unsigned len = str.size() * 4 + 1;
+	  int len = (int)str.size() * 4 + 1;
 	  setlocale(LC_CTYPE, "en_US.UTF-8");
 	  char* p = new char[len];
 	  wcstombs(p, str.c_str(), len);
@@ -486,13 +486,13 @@ namespace Grasp {
   {
 	  wstring data = readFile(fname);
 	  string d8 = wstring_to_utf8(data);
-	  int len = d8.size();
+	  int len = (int)d8.size();
 	  char* buf = new char[len + 1];
 	  strcpy_s(buf, len + 1, d8.c_str());
 
 	  vector<string*> vec;
 	  split2vector(buf, '\n', vec);
-	  int vl = vec.size();
+	  int vl = (int)vec.size();
 	  delete[] buf;
 
 	  // trim strings
@@ -500,7 +500,7 @@ namespace Grasp {
 	  {
 		  string * s = vec[k];
 		  const char* da = s->c_str();
-		  len = s->size();
+		  len = (int)s->size();
 		  if (len == 0) continue;
 		  buf = new char[len + 1];
 		  strcpy_s(buf, len + 1, da);
@@ -536,7 +536,7 @@ namespace Grasp {
 
 	  LoadDialogs();
 
-	  return lstKey.size();
+	  return (int)lstKey.size();
   }
 
   void BeatIni::LoadDialogs()
@@ -578,7 +578,7 @@ namespace Grasp {
 		  }
 		  else if (dlg != NULL)
 		  {
-			  int len = val.size();
+			  int len = (int)val.size();
 			  char* buf = new char[len + 1];
 			  strcpy_s(buf, len + 1, val.c_str());
 			  split2vector(buf, '|', vec);
@@ -587,7 +587,7 @@ namespace Grasp {
 			  {				  
 				  continue;
 			  }
-			  cout << key << " " << *vec[0] << " " << *vec[1] << " " << *vec[2] << "\n"; 
+			  //cout << key << " " << *vec[0] << " " << *vec[1] << " " << *vec[2] << "\n"; 
 
 			  TParam* pParam = new TParam();
 			  pParam->pname = key;
@@ -607,8 +607,8 @@ namespace Grasp {
 				  pParam->ptype = 4;
 			  else pParam->ptype = 0;	//double
 
-			  int i0 = tt.find("{");
-			  int i1 = tt.find("}");
+			  int i0 = (int)tt.find("{");
+			  int i1 = (int)tt.find("}");
 			  //cout << "i0 " << i0 << ", i1 " << i1;
 			  if (i0 < i1)
 			  {
@@ -634,6 +634,7 @@ namespace Grasp {
 	  //IniUnload();
   }
 
+  // очистка структур
   void BeatIni::IniUnload()
   {
 	  for (int k = 0; k < lstKey.size(); k++)
@@ -647,6 +648,22 @@ namespace Grasp {
 		  delete lstVal[k];
 	  }
 	  lstVal.resize(0);
+
+	  for (int k = 0; k < lstDlg.size(); k++)
+	  {
+		  delete lstDlg[k];
+	  }
+	  lstDlg.resize(0);
+
+	  for (int k = 0; k < TMoleculeList.size(); k++)
+	  {
+		  delete TMoleculeList[k];
+	  }
+	  TMoleculeList.resize(0);
+
+	  features.Reset();
+	  defmat.Reset();
+	  geob_win->Reset();
   }
 
   const char* BeatIni::IniFindValue(const char* look)
@@ -654,14 +671,60 @@ namespace Grasp {
 	  for (int i = 0; i < lstKey.size(); i++)
 	  {
 		  string key = *lstKey[i];
-		  string val = *lstVal[i];
-
 		  if (key == look)
 		  {
-			  return val.c_str();
+			  return lstVal[i]->c_str();
 		  }
 	  }
 	  return NULL;
   }
+
+  //проинициализировать физ.объект
+  void BeatIni::InitFeatures(TMolecule* mol)
+  {
+	  if (mol->lstFeature.size() > 0)
+		  return;
+	  for (int i = 0; i < features.lstParams.size(); i++)
+	  {
+		  TParam* par = new TParam();
+		  par->pname = features.lstParams[i]->pname;
+		  par->pvalue = features.lstParams[i]->pvalue;
+		  par->pcurr = features.lstParams[i]->pvalue; //default
+		  par->pcomment = features.lstParams[i]->pcomment;
+		  mol->lstFeature.push_back(par);
+	  }
+  }
+
+  //установить свойство
+  void BeatIni::SetFeature(TMolecule* mol, int index, string& val)
+  {
+	  mol->lstFeature[index]->pcurr = val;
+  }
+
+  //создать новый физ.объект и связать с геом.
+  void BeatIni::AddGeOb(GeOb* cub3)
+  {
+	  TMolecule* mol = new TMolecule();
+	  mol->geob_id = cub3->GetIndex();
+	  char buf[33];
+	  sprintf_s(buf, "phy %d", mol->geob_id);
+	  mol->objname = buf;
+	  InitFeatures(mol);
+	  TMoleculeList.push_back(mol);
+  }
+
+  // найти физ.объект по индексу
+  TMolecule* BeatIni::FindMolecule(int index)
+  {
+	  for (int i = 0; i < TMoleculeList.size(); i++)
+	  {
+		  TMolecule * mol = TMoleculeList[i];
+		  if (mol->geob_id == index)
+			  return mol;
+	  }
+	  return NULL;
+  }
+
+
 
 } // namespace Grasp

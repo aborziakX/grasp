@@ -9,6 +9,7 @@
 
 #include <stdlib.h>
 #include "GeObWindow.h"
+#include "beat_ini.h"
 #ifndef _WINDOWS
 #define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
 #endif
@@ -106,6 +107,37 @@ private:
     Fl_Input inLookX{ 100, 100, 70, 20, u8"xLook:" };
     Fl_Input inLookY{ 100, 130, 70, 20, u8"yLook:" };
     Fl_Input inLookZ{ 100, 160, 70, 20, u8"zLook:" };
+};
+
+/**
+@class   PhysPropDialog
+@brief   физические свойства
+*/
+class PhysPropDialog : public Fl_Window
+{
+public:
+    PhysPropDialog(Fl_Callback* cb);
+    void Init(TMolecule* _mol);
+    bool GetPos(double * di);
+
+private:
+    Fl_Button button_Ok{ 10, 320, 100, 25, u8"Применить" };
+    Fl_Button button_Cancel{ 150, 320, 100, 25, u8"Отмена" };
+    int m1 = 1; //Ok
+    int m2 = 2; //Cancel
+    Fl_Input in1{ 170, 10, 70, 20, u8"1:" };
+    Fl_Input in2{ 170, 40, 70, 20, u8"2:" };
+    Fl_Input in3{ 170, 70, 70, 20, u8"3:" };
+    Fl_Input in4{ 170, 100, 70, 20, u8"4:" };
+    Fl_Input in5{ 170, 130, 70, 20, u8"5:" };
+    Fl_Input in6{ 170, 160, 70, 20, u8"6:" };
+    Fl_Input in7{ 170, 190, 70, 20, u8"7:" };
+    Fl_Input in8{ 170, 220, 70, 20, u8"8:" };
+    Fl_Input in9{ 170, 250, 70, 20, u8"9:" };
+    Fl_Input in10{ 170, 280, 70, 20, u8"10:" };
+
+    TMolecule* mol = NULL;
+    Fl_Input* fieldByIndex(int ind);
 };
 
 } // namespace Grasp

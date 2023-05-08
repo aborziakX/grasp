@@ -45,7 +45,7 @@ using namespace Grasp;
 
 Fl_Window *form; // главное окно/форма
 Fl_Glut_Window* glut_win_main = NULL; // окно с OpenGl
-Fl_Slider *slRotX, *slRotY, *slRotZ; // слайдеры
+//Fl_Slider *slRotX, *slRotY, *slRotZ; // слайдеры
 Fl_Button *btnApply; // кнопка
 // ввод текста
 //Fl_Input *inXTop, *inYTop, *inZTop, * inXCam, * inYCam, * inZCam, * inXLook, * inYLook, * inZLook;
@@ -62,6 +62,7 @@ Pass_Window* pass_window = NULL;
 AddCubeDialog* add_cube_dlg = NULL;
 CameraXyzDialog* camera_xyz_dlg = NULL;
 CameraSphDialog* camera_sph_dlg = NULL;
+PhysPropDialog* phys_dlg = NULL;
 
 // высота меню
 #define MENUBAR_H 25
@@ -79,9 +80,31 @@ void FillListBox();
 void help_cb(Fl_Widget *, void *) 
 {
   // fl_close = "Закрыть";
-  fl_message(u8"Множественные геометрические объекты могут добавлену в сцену.\n"
+  fl_message(u8"Сначала надо создать проект или открыть имеющийся.\n"
+    "Затем множественные геометрические объекты могут добавлену в сцену.\n"
     "Для работы со сценой используйте стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
+    "В итоге можно сгенерировать ini-файл.\n"
   );
+}
+
+bool IsReady()
+{
+    if (beatIni == NULL)
+    {
+        fl_message(u8"Нет проекта");
+        return false;
+    }
+    return true;
+}
+
+bool IsSelected()
+{
+    if (geobCurrent == NULL)
+    {
+        fl_message(u8"Объект не выбран!");
+        return false;
+    }
+    return true;
 }
 
 //выбор файла
@@ -132,25 +155,27 @@ void file_open_cb(Fl_Widget*, void*)
     //fl_message(sIniFile.c_str());
     if (beatIni == NULL)
     {
-        beatIni = new BeatIni();
+        beatIni = new BeatIni(geob_win);
         beatIni->ErrorLog(L"Я started2!");
         //const wstring sMessageJpn[] = { L"Я started!" };
         //beatIni->WriteUnicodeUTF8toFile("error.log", sMessageJpn, 1, true);
     }
     int n = beatIni->LoadIni(sIniFile.c_str());
     cout << "\nn=" << n;
+    //text2->value(beatIni->lstVal[1]->c_str()); //test
+    
     //beatIni->ReadUtf8UnicodeFile(sIniFile.c_str());  //test  
     //wstring data = beatIni->readFile(sIniFile.c_str());
     //wcout << "\ndata-" << data; //Linux ok
     //std::string ss = BeatIni::wstring_to_utf8(data);
     //text2->value(ss.c_str());
 
-    text2->value(beatIni->lstVal[1]->c_str()); //test
 }
 
 //Сохранить Проект
 void file_save_cb(Fl_Widget*, void*)
 {
+    if (!IsReady()) return;
     fl_message(u8"file_save_cb");
 }
 
@@ -163,29 +188,57 @@ void file_create_cb(Fl_Widget*, void*)
 //Сохранить как Проект
 void file_save_as_cb(Fl_Widget*, void*)
 {
+    if (!IsReady()) return;
     fl_message(u8"file_save_as_cb");
 }
 
 //Генерировать ini
 void file_gener_cb(Fl_Widget*, void*)
 {
+    if (!IsReady()) return;
     fl_message(u8"file_gener_cb");
 }
 
 //Геометрия/Изменить
 void edit_cb(Fl_Widget*, void*)
 {
+    if (!IsReady()) return;
     fl_message(u8"edit_cb");
 }
 
 //Геометрия/Свойства 
+void features_done_cb(Fl_Widget* bt, void* ud)
+{
+    int m = *(int*)ud;
+    if (m == 1)
+    { //Ok
+        double x[10];
+        bool bSuc = phys_dlg->GetPos(x);
+        if (!bSuc)
+        {
+            fl_message(u8"Ошибка в данных");
+            return;
+        }
+    }
+    phys_dlg->hide();
+}
 void features_cb(Fl_Widget*, void*)
 {
-    if (beatIni == NULL)
+    if (!IsReady()) return;
+    if (!IsSelected()) return;
+    int id = geobCurrent->GetIndex();
+    TMolecule * mol = beatIni->FindMolecule(id);
+    if (mol == NULL)
     {
-        fl_message(u8"Нет проекта");
+        fl_message(u8"физ.объект не найден!");
         return;
     }
+    //fl_message(mol->objname.c_str());
+    
+    if (phys_dlg == NULL)
+        phys_dlg = new PhysPropDialog(features_done_cb);
+    phys_dlg->Init(mol);
+    phys_dlg->show();
 }
 
 // нажатие кнопки в listbox
@@ -220,11 +273,9 @@ void listbox_cb(Fl_Widget* bt, void* ud)
 // удалить объект
 void delete_cb(Fl_Widget*, void* ud)
 {
-    if (geobCurrent == NULL)
-    {
-        fl_message(u8"Объект не выбран!");
-        return;
-    }
+    if (!IsReady()) return;
+    if (!IsSelected()) return;
+
     char buf[333] = { 0 }, buf2[333] = { 0 };
     geobCurrent->GetName(buf2);
     snprintf(buf, 333, u8"[%s] будет удален. Продолжить?", buf2);
@@ -260,12 +311,15 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
         cub3->Translate(x, y, z);
         geob_win->Add(cub3);
         FillListBox();
+
+        beatIni->AddGeOb(cub3);
     }
     add_cube_dlg->hide();
 }
 
 void add_cube_cb(Fl_Widget* bt, void* ud)
 {
+    if (!IsReady()) return;
     int m = *(int*)ud;
     if (m == 0)
     {
@@ -784,7 +838,12 @@ int main(int argc, char **argv)
       delete camera_sph_dlg;
       camera_sph_dlg = NULL;
   }
-  return 0;
+  if (phys_dlg != NULL)
+  {
+      delete phys_dlg;
+      phys_dlg = NULL;
+  }
+  return 0; 
 }
 //==
 

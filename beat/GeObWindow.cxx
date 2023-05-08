@@ -12,14 +12,23 @@ GeObWindow::GeObWindow()
     SetPolar(distance, azimut, elevation);
 }
 
-GeObWindow::~GeObWindow() 
+GeObWindow::~GeObWindow()
 {
+    Reset();
+}
+
+void GeObWindow::Reset()
+{
+  bCanDraw = false;
+  vecFacet.resize(0);
   for (int i = 0; i < vecGeOb.size(); i++) {
     if (vecGeOb[i] == NULL)
       continue;
     delete vecGeOb[i];
     vecGeOb[i] = NULL;
   }
+  vecGeOb.resize(0);
+  bCanDraw = true;
 }
 
 // добавить GeOb в список
@@ -69,6 +78,7 @@ void test2()
 
 // рисовать
 void GeObWindow::Draw() {
+    if (!bCanDraw) return;
     // Очистка буфера цвета и глубины
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -317,6 +327,7 @@ void GeObWindow::CalcPolar(double& _distance, double& _azimut, double& _elevatio
 // пересортировать список граней
 void GeObWindow::ResortFacet(Vec3& vecCam, Vec3& vecCamDir)
 {
+    if (vecFacet.size() == 0) return; //size_t is unsigned!
     if (!bResort)
     {
         for (int i = 0; i < vecFacet.size(); i++)
