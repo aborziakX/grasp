@@ -1,6 +1,13 @@
 ﻿#include "Dialogs.h"
 
 namespace Grasp {
+    bool IsValid(const char * val)
+    {
+        double d = atof(val);
+        if (d == 0 && !(strcmp(val,"0") == 0 || strcmp(val, "0.0") == 0))
+            return false;
+        return true;
+    }
 
 Pass_Window::Pass_Window(Fl_Callback* cb) : 
     Fl_Window(200, 100, 300, 300, "Password example")
@@ -164,33 +171,61 @@ PhysPropDialog::PhysPropDialog(Fl_Callback* cb) :
     button_Cancel.callback(cb, &m2);
 }
 
-bool PhysPropDialog::GetPos(double * di)
+// присвоить значения
+bool PhysPropDialog::GetPos()
 {
     bool rc = true;
+    Fl_Input* field;
+    Fl_Choice* choice;
+    std::vector<std::string*> vec;
     try {
-        Fl_Input* field;
         int i;
+        // проверить корректность ввода
         for (i = 0; i < 10 && i < mol->lstFeature.size(); i++)
         {
             field = fieldByIndex(i);
-
             if (field->visible() == 0) continue;
-            di[0] = atof(field->value());
+            if (!IsValid(field->value()))
+            {
+                rc = false;
+                break;
+            }
         }
 
-        for (i = 0; i < 10 && i < mol->lstFeature.size(); i++)
+        // изменить значения
+        for (i = 0; rc && i < 10 && i < mol->lstFeature.size(); i++)
         {
             field = fieldByIndex(i);
+            choice = choiceByIndex(i);
 
-            if (field->visible() == 0) continue;
-            TParam* par = mol->lstFeature[i];
-            par->pcurr = field->value();
+            if (field->visible() != 0)
+            {
+                TParam* par = mol->lstFeature[i];
+                par->pcurr = field->value();
+            }
+            if (choice->visible() != 0)
+            {
+                TParam* par = mol->lstFeature[i];
+                string txt(choice->text());
+                for (int k = 0; k < par->lstCombo.size(); k++)
+                {
+                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    if (vec.size() == 2)
+                    {
+                        if (*vec[1] == txt)
+                        {
+                            par->pcurr = *vec[0];
+                            break;
+                        }
+                    }
+                }               
+            }
         }
-
     }
     catch (...) {
         rc = false;
     }
+    BeatIni::split2vector(NULL, ':', vec); // очистить память
     return rc;
 }
 
@@ -210,27 +245,234 @@ Fl_Input* PhysPropDialog::fieldByIndex(int i)
     return field;
 }
 
+Fl_Choice* PhysPropDialog::choiceByIndex(int i)
+{
+    Fl_Choice* field = NULL;
+    if (i == 0) field = &ch1;
+    else if (i == 1) field = &ch2;
+    else if (i == 2) field = &ch3;
+    else if (i == 3) field = &ch4;
+    else if (i == 4) field = &ch5;
+    else if (i == 5) field = &ch6;
+    else if (i == 6) field = &ch7;
+    else if (i == 7) field = &ch8;
+    else if (i == 8) field = &ch9;
+    else if (i == 9) field = &ch10;
+    return field;
+}
+
+// инициализация
 void PhysPropDialog::Init(TMolecule* _mol)
 {
     mol = _mol;
     char buf[330];
     Fl_Input* field;
+    Fl_Choice* choice;
+    std::vector<std::string*> vec;
     int i;
     for (i = 0; i < 10; i++)
     {
         field = fieldByIndex(i);
+        choice = choiceByIndex(i);
 
-        if (i < mol->lstFeature.size()) {
+        if (i < mol->lstFeature.size()) 
+        {
             TParam* par = mol->lstFeature[i];
-            sprintf_s(buf, "%s", par->pcurr.c_str());
-            field->value(buf);
-            field->label( par->pcomment.c_str() );
+            if (par->ptype != 3)
+            {
+                sprintf_s(buf, "%s", par->pcurr.c_str());
+                field->value(buf);
+                field->copy_label(par->pcomment.c_str());
+
+                choice->clear_visible();
+            }
+            else
+            {
+                choice->copy_label(par->pcomment.c_str());
+                int m = 0;
+                for (int k = 0; k < par->lstCombo.size(); k++)
+                {
+                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    if (vec.size() == 2)
+                    {
+                        choice->add(vec[1]->c_str());
+                        if (*vec[0] == par->pcurr)
+                            choice->value(m);
+                        m++;
+                    }
+                }
+
+                field->clear_visible();
+            }
         }
-        else field->clear_visible();
+        else
+        {
+            field->clear_visible();
+            choice->clear_visible();
+        }
     }
-
-
+    BeatIni::split2vector(NULL, ':', vec); // очистить память
 }
 //==
+
+//==выбор значений параметров
+BeatDialog::BeatDialog(Fl_Callback* cb) :
+    Fl_Window(100, 100, 400, 350, u8"выбор значений")
+{
+    button_Ok.callback(cb, &m1);
+    button_Cancel.callback(cb, &m2);
+}
+
+// присвоить значения
+bool BeatDialog::GetPos()
+{
+    if (mol == NULL) return true;
+    bool rc = true;
+    Fl_Input* field;
+    Fl_Choice* choice;
+    std::vector<std::string*> vec;
+    try {
+        int i;
+        // проверить корректность ввода
+        for (i = 0; i < 10 && i < mol->lstParams.size(); i++)
+        {
+            field = fieldByIndex(i);
+            if (field->visible() == 0) continue;
+            if (!IsValid(field->value()))
+            {
+                rc = false;
+                break;
+            }
+        }
+
+        // изменить значения
+        for (i = 0; rc && i < 10 && i < mol->lstParams.size(); i++)
+        {
+            field = fieldByIndex(i);
+            choice = choiceByIndex(i);
+
+            if (field->visible() != 0)
+            {
+                TParam* par = mol->lstParams[i];
+                par->pcurr = field->value();
+            }
+            if (choice->visible() != 0)
+            {
+                TParam* par = mol->lstParams[i];
+                string txt(choice->text());
+                for (int k = 0; k < par->lstCombo.size(); k++)
+                {
+                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    if (vec.size() == 2)
+                    {
+                        if (*vec[1] == txt)
+                        {
+                            par->pcurr = *vec[0];
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    catch (...) {
+        rc = false;
+    }
+    BeatIni::split2vector(NULL, ':', vec); // очистить память
+    return rc;
+}
+
+Fl_Input* BeatDialog::fieldByIndex(int i)
+{
+    Fl_Input* field = NULL;
+    if (i == 0) field = &in1;
+    else if (i == 1) field = &in2;
+    else if (i == 2) field = &in3;
+    else if (i == 3) field = &in4;
+    else if (i == 4) field = &in5;
+    else if (i == 5) field = &in6;
+    else if (i == 6) field = &in7;
+    else if (i == 7) field = &in8;
+    else if (i == 8) field = &in9;
+    else if (i == 9) field = &in10;
+    return field;
+}
+
+Fl_Choice* BeatDialog::choiceByIndex(int i)
+{
+    Fl_Choice* field = NULL;
+    if (i == 0) field = &ch1;
+    else if (i == 1) field = &ch2;
+    else if (i == 2) field = &ch3;
+    else if (i == 3) field = &ch4;
+    else if (i == 4) field = &ch5;
+    else if (i == 5) field = &ch6;
+    else if (i == 6) field = &ch7;
+    else if (i == 7) field = &ch8;
+    else if (i == 8) field = &ch9;
+    else if (i == 9) field = &ch10;
+    return field;
+}
+
+// инициализация
+void BeatDialog::Init(TDialog* _mol)
+{
+    mol = _mol;
+    if (mol == NULL) return;
+    this->copy_label(mol->dname.c_str());
+
+    char buf[330];
+    Fl_Input* field;
+    Fl_Choice* choice;
+    std::vector<std::string*> vec;
+    int i;
+    for (i = 0; i < 10; i++)
+    {
+        field = fieldByIndex(i);
+        choice = choiceByIndex(i);
+
+        if (i < mol->lstParams.size())
+        {
+            TParam* par = mol->lstParams[i];
+            if (par->ptype != 3)
+            {
+                sprintf_s(buf, "%s", par->pcurr.c_str());
+                field->value(buf);
+                field->copy_label(par->pcomment.c_str());
+
+                field->set_visible();
+                choice->clear_visible();
+            }
+            else
+            {
+                choice->copy_label(par->pcomment.c_str());
+                int m = 0;
+                for (int k = 0; k < par->lstCombo.size(); k++)
+                {
+                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    if (vec.size() == 2)
+                    {
+                        choice->add(vec[1]->c_str());
+                        if (*vec[0] == par->pcurr)
+                            choice->value(m);
+                        m++;
+                    }
+                }
+
+                choice->set_visible();
+                field->clear_visible();
+            }
+        }
+        else
+        {
+            field->clear_visible();
+            choice->clear_visible();
+        }
+
+    }
+    BeatIni::split2vector(NULL, ':', vec); // очистить память
+}
+//==
+
 
 }

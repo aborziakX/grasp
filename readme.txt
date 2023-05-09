@@ -35,3 +35,5 @@ Linux-C-MakeLists.txt переиеновать в CMakeLists.txt
 
 =============== beat
 В папке beat имеется файл beat.bpj. Его можно использовать для команды меню "Проект/Открыть".
+
+Для связи - Борзяк Андрей - aborziak@yandex.ru

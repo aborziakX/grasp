@@ -19,16 +19,58 @@ namespace Grasp {
   {
 	//defmat.composit = "0";
 	//defmat.objname = "air";
-    //число датчиков давления. Датчики регистрируют давление, скорость, плотность, температуру, состав смеси. Далее должны следовать группы из трех параметров числом nGadgets. В каждую группу входит 
+    //число датчиков давления. Датчики регистрируют давление, скорость, плотность, температуру, состав смеси. 
 	nGadgets = 0;
   }
 
-  //загрузить файл, создать управляющие структуры
+  // загрузить файл, создать управляющие структуры
   int BeatIni::LoadIni(const char* fname)
   {
 	  Defaults();
 	  IniUnload();
 	  int rc = IniParse(fname);
+	  filename = fname;
+
+	  const char* val;
+	  vector<string*> lst;
+	  // восстанавливаем кубы
+	  int npos = 0, geom_must = 7;
+	  while (npos >= 0)
+	  {
+		  //box=0,0,0, 15,15,15, 0, 293,1000000,0,0,0, box1
+		  //x,y,z, dx,dy,dz, features, name
+		  val = IniFindValuePos("box", npos);
+		  if (val == NULL)
+			  break;
+
+		  npos++;
+		  string qs = val;
+
+		  split2vector(qs, ',', lst);
+
+		  if (lst.size() < geom_must)
+			  continue;
+		  double x_0 = atof(lst[0]->c_str()), 
+			  y_0 = atof(lst[1]->c_str()),
+			  z_0 = atof(lst[2]->c_str()),
+			  x_1 = atof(lst[3]->c_str()),
+			  y_1 = atof(lst[4]->c_str()),
+			  z_1 = atof(lst[5]->c_str());
+		  string composit = *lst[6];
+
+		  //geob_win->AddBoxX(lst[lst.size() - 1], x_0, y_0, z_0, x_1, y_1, z_1, composit);
+
+		  TMolecule* mol = new TMolecule();
+		  //TODO add features!
+		  TMoleculeList.push_back(mol);
+		  for (int i = 0; i < mol->lstFeature.size(); i++)
+		  {
+			  if (lst.size() > i + geom_must)
+				  SetFeature(mol, i, *lst[i + geom_must]);
+		  }
+	  }
+	  split2vector(NULL, ',', lst); //чистка
+
 	  return rc;
 	  /*char buf[330];
 	  char* val = IniFindValue("pProblemName");
@@ -109,33 +151,7 @@ namespace Grasp {
 		  pApp->AddGadX(qs, x_0, y_0, z_0);
 	  }
 
-	  int npos = 0, geom_must = 5;
-	  while (npos >= 0)
-	  {
-		  //sphere=0,0,15.2,15.2,0,1e+06,294,2,0,0,s1
-		  val = IniFindValuePos("sphere", npos);
-		  qDebug() << val;
-		  if (val == NULL)
-			  break;
 
-		  npos++;
-		  QString qs = val;
-
-		  QStringList lst = qs.split(',');
-		  if (lst.count() < geom_must)
-			  continue;
-		  double x_0 = lst[0].toDouble(), y_0 = lst[1].toDouble(), z_0 = lst[2].toDouble(), radius = lst[3].toDouble();
-		  QString composit = lst[4];
-
-		  pApp->AddSphX(lst[lst.count() - 1], x_0, y_0, z_0, radius, composit);
-
-		  TMolecule* mol = TMoleculeList[TMoleculeList.length() - 1];
-		  for (int i = 0; i < mol->lstFeature.count(); i++)
-		  {
-			  if (lst.count() > i + geom_must)
-				  SetFeature(mol, i, lst[i + geom_must]);
-		  }
-	  }
 
 	  npos = 0;
 	  geom_must = 7;
@@ -399,7 +415,7 @@ namespace Grasp {
 	  wif.close();
   }
 
-  //считать из UTF-8 файла в Unicode-16 строку
+  // считать из UTF-8 файла в Unicode-16 строку
   std::wstring BeatIni::readFile(const char* filename)
   {
 	  std::wifstream wif(filename);
@@ -450,7 +466,7 @@ namespace Grasp {
 #endif
   }
 
-  //сформировать вектор из указателей на string
+  // сформировать вектор из указателей на string
   void BeatIni::split2vector(char* msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart)
   {
 	  if (bCleanByStart)
@@ -480,6 +496,15 @@ namespace Grasp {
 			  p = p_2 + 1;
 		  }
 	  }
+  }
+
+  void BeatIni::split2vector(string& msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart)
+  {
+	  int len = (int)msg.size();
+	  char* buf = new char[len + 1];
+	  strcpy_s(buf, len + 1, msg.c_str());
+	  split2vector(buf, sepa, vec, bCleanByStart);
+	  delete[] buf;
   }
 
   int BeatIni::IniParse(const char* fname)
@@ -679,35 +704,56 @@ namespace Grasp {
 	  return NULL;
   }
 
-  //проинициализировать физ.объект
+  const char* BeatIni::IniFindValuePos(const char* look, int& npos)
+  {
+	  for (int i = npos; i < lstKey.size(); i++)
+	  {
+		  string key = *lstKey[i];
+		  if (key == look)
+		  {
+			  npos = i;
+			  return lstVal[i]->c_str();
+		  }
+	  }
+	  return NULL;
+  }
+
+  // проинициализировать физ.объект
   void BeatIni::InitFeatures(TMolecule* mol)
   {
 	  if (mol->lstFeature.size() > 0)
 		  return;
 	  for (int i = 0; i < features.lstParams.size(); i++)
 	  {
+		  TParam* parCur = features.lstParams[i];
 		  TParam* par = new TParam();
-		  par->pname = features.lstParams[i]->pname;
-		  par->pvalue = features.lstParams[i]->pvalue;
-		  par->pcurr = features.lstParams[i]->pvalue; //default
-		  par->pcomment = features.lstParams[i]->pcomment;
+		  par->pname = parCur->pname;
+		  par->pvalue = parCur->pvalue;
+		  par->pcurr = parCur->pvalue; //default
+		  par->pcomment = parCur->pcomment;
+		  par->ptype = parCur->ptype;
+		  for (int k = 0; k < parCur->lstCombo.size(); k++)
+		  {
+			  string* qq = new string(parCur->lstCombo[k]->c_str());
+			  par->lstCombo.push_back(qq);
+		  }
 		  mol->lstFeature.push_back(par);
 	  }
   }
 
-  //установить свойство
+  // установить свойство
   void BeatIni::SetFeature(TMolecule* mol, int index, string& val)
   {
 	  mol->lstFeature[index]->pcurr = val;
   }
 
-  //создать новый физ.объект и связать с геом.
+  // создать новый физ.объект и связать с геом.
   void BeatIni::AddGeOb(GeOb* cub3)
   {
 	  TMolecule* mol = new TMolecule();
 	  mol->geob_id = cub3->GetIndex();
 	  char buf[33];
-	  sprintf_s(buf, "phy %d", mol->geob_id);
+	  sprintf_s(buf, "phy_%d", mol->geob_id);
 	  mol->objname = buf;
 	  InitFeatures(mol);
 	  TMoleculeList.push_back(mol);
@@ -725,6 +771,184 @@ namespace Grasp {
 	  return NULL;
   }
 
+  // сохранить проект в файл
+  bool BeatIni::Save(const char* fname)
+  {
+	  bool rc = true;
+	  std::wofstream outFile;
+	  outFile.open(fname, std::ios::out);
+	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
+	  outFile.imbue(loc);
 
+	  outFile << "#BEAT saved" << endl;
+	  // сохранить свойства
+	  outFile << "[Features]" << endl;
+	  outFile << "features=" << utf8_to_wstring(features.dname) << endl;
+	  for (int m = 0; m < features.lstParams.size(); m++)
+	  { //velocityX=0 |double {-100000,100000} |скорость м/сек по оси X
+		  ParameterFull(outFile, features.lstParams[m]);
+	  }
+
+	  // сохранить диалоги параметров
+	  outFile << endl << "[Parameters]" << endl;
+	  for (int m = 0; m < lstDlg.size(); m++)
+	  {
+		  outFile << "dialog_" << m << "=" << utf8_to_wstring(lstDlg[m]->dname) << endl;
+		  for (int n = 0; n < lstDlg[m]->lstParams.size(); n++)
+		  {
+			  ParameterFull(outFile, lstDlg[m]->lstParams[n]);
+		  }
+	  }
+
+	  // сохранить геометрию
+	  outFile << endl << "[Geom]" << endl;
+	  int len = TMoleculeList.size();
+	  nGadgets = 0;
+	  for (int m = 0; m < len; m++)
+	  {
+		  /*if (TMoleculeList[m]->geom_type == GO_GADGET)
+		  {	//special case - gadgets
+			  if (nGadgets < GAD_MAX)
+			  {
+				  gadget_x[nGadgets] = TMoleculeList[m]->x_0;
+				  gadget_y[nGadgets] = TMoleculeList[m]->y_0;
+				  gadget_z[nGadgets] = TMoleculeList[m]->z_0;
+				  nGadgets++;
+			  }
+			  continue;
+		  }*/
+
+		  SaveMol(outFile, TMoleculeList[m]);
+	  }
+
+	  // сохранить управление
+	  outFile << endl << "[Controls]" << endl;
+	  int npos = 0;
+	  const char * pp = IniFindValuePos("[Controls]", npos);
+	  if (pp != NULL)
+	  {
+		  for (int m = npos + 1; m < lstKey.size(); m++)
+		  {
+			  outFile << utf8_to_wstring(*lstKey[m]) << "=" << utf8_to_wstring(*lstVal[m]) << endl;
+		  }
+	  }
+
+	  outFile.close();
+	  return rc;
+  }
+  
+  // генерировать ini-файл из проекта
+  bool BeatIni::GenerateIni(const char* fname)
+  {
+	  bool rc = true;
+	  std::wofstream outFile;
+	  outFile.open(fname, std::ios::out);
+	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
+	  outFile.imbue(loc);
+
+	  outFile << "#BEAT generated" << endl;
+	  outFile << "#[Parameters]" << endl;
+	  for (int m = 0; m < lstDlg.size(); m++)
+	  {
+		  for (int n = 0; n < lstDlg[m]->lstParams.size(); n++)
+		  {
+			  outFile << utf8_to_wstring(lstDlg[m]->lstParams[n]->pname) << "=" <<
+				  utf8_to_wstring(lstDlg[m]->lstParams[n]->pcurr) << endl;
+		  }
+	  }
+
+	  outFile << "#[Geom]" << endl;
+	  outFile << "features=";
+	  for (int m = 0; m < features.lstParams.size(); m++)
+	  {
+		  if (m > 0) outFile << ",";
+		  outFile << utf8_to_wstring(features.lstParams[m]->pname);
+	  }
+	  outFile << endl;
+
+	  int len = TMoleculeList.size();
+	  nGadgets = 0;
+	  for (int m = 0; m < len; m++)
+	  {
+		  /*if (TMoleculeList[m]->geom_type == GO_GADGET)
+		  {	//special case - gadgets
+			  if (nGadgets < GAD_MAX)
+			  {
+				  gadget_x[nGadgets] = TMoleculeList[m]->x_0;
+				  gadget_y[nGadgets] = TMoleculeList[m]->y_0;
+				  gadget_z[nGadgets] = TMoleculeList[m]->z_0;
+				  nGadgets++;
+			  }
+			  continue;
+		  }*/
+
+		  SaveMol(outFile, TMoleculeList[m]);
+	  }
+
+	  outFile.close();
+	  return rc;
+  }
+
+  void BeatIni::SaveMol(std::wofstream& out, TMolecule* mol)
+  {
+	  if (mol->geom_type == GO_SPHERE)
+	  {
+		  out << "sphere=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
+			  << mol->radius << "," << utf8_to_wstring(mol->composit);
+	  }
+	  else if (mol->geom_type == GO_BOX)
+	  {
+		  out << "box=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
+			  << mol->dx << "," << mol->dy << "," << mol->dz << "," << utf8_to_wstring(mol->composit);
+	  }
+	  else if (mol->geom_type == GO_CYLINDER)
+	  {
+		  out << "cylinder=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
+			  << mol->radius << "," << mol->dx << "," << mol->dy << "," << utf8_to_wstring(mol->composit);
+	  }
+	  /*else if (mol->geom_type == GO_TETRAHEDRON)
+	  {
+		  out << "tetra=";
+		  for (int k = 0; k < 12; k++)
+			  out << mol->coord[k] << ",";
+		  out << mol->composit;
+	  }*/
+	  /*else if (mol->geom_type == GO_POLY)
+	  {
+		  out << "poly=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
+			  << mol->dx << "," << mol->dy << "," << mol->dz << "," << mol->fname << "," << mol->composit;
+	  }*/
+	  else if (mol->geom_type == GO_DEFAULT)
+		  out << "default=" << utf8_to_wstring(mol->composit);
+	  else return;
+
+	  for (int i = 0; i < mol->lstFeature.size(); i++)
+	  {
+		  TParam* par = mol->lstFeature[i];
+		  out << "," << utf8_to_wstring(par->pcurr);
+	  }
+	  out << "," << utf8_to_wstring(mol->objname) << endl;
+  }
+
+  void BeatIni::ParameterFull(std::wofstream& outFile, TParam* par)
+  {
+	  std::stringstream ss;
+	  if (par->lstCombo.size() > 0)
+	  {
+		  ss << " {";
+		  for (int k = 0; k < par->lstCombo.size(); k++)
+		  {
+			  if (k > 0) ss << ",";
+			  ss << par->lstCombo[k]->c_str();
+		  }
+		  ss << "} ";
+	  }
+
+	  outFile << utf8_to_wstring(par->pname) << "=" <<
+		  utf8_to_wstring(par->pcurr) << "|" <<
+		  utf8_to_wstring(par->PtypeToString()) <<
+		  utf8_to_wstring(ss.str()) << "|" <<
+		  utf8_to_wstring(par->pcomment) << endl;
+  }
 
 } // namespace Grasp

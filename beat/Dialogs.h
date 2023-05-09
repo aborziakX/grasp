@@ -6,6 +6,7 @@
 #include <FL/Fl_Button.H>
 #include <FL/fl_ask.H>
 #include <FL/Fl_Input.H>
+#include <FL/Fl_Choice.H>
 
 #include <stdlib.h>
 #include "GeObWindow.h"
@@ -117,8 +118,8 @@ class PhysPropDialog : public Fl_Window
 {
 public:
     PhysPropDialog(Fl_Callback* cb);
-    void Init(TMolecule* _mol);
-    bool GetPos(double * di);
+    void Init(TMolecule* _mol); /// инициализация
+    bool GetPos(); /// присвоить значения
 
 private:
     Fl_Button button_Ok{ 10, 320, 100, 25, u8"Применить" };
@@ -136,8 +137,63 @@ private:
     Fl_Input in9{ 170, 250, 70, 20, u8"9:" };
     Fl_Input in10{ 170, 280, 70, 20, u8"10:" };
 
+    Fl_Choice ch1{ 170, 10, 70, 20, u8"1:" };
+    Fl_Choice ch2{ 170, 40, 70, 20, u8"2:" };
+    Fl_Choice ch3{ 170, 70, 70, 20, u8"3:" };
+    Fl_Choice ch4{ 170, 100, 70, 20, u8"4:" };
+    Fl_Choice ch5{ 170, 130, 70, 20, u8"5:" };
+    Fl_Choice ch6{ 170, 160, 70, 20, u8"6:" };
+    Fl_Choice ch7{ 170, 190, 70, 20, u8"7:" };
+    Fl_Choice ch8{ 170, 220, 70, 20, u8"8:" };
+    Fl_Choice ch9{ 170, 250, 70, 20, u8"9:" };
+    Fl_Choice ch10{ 170, 280, 70, 20, u8"10:" };
+
     TMolecule* mol = NULL;
     Fl_Input* fieldByIndex(int ind);
+    Fl_Choice* choiceByIndex(int ind);
+};
+
+/**
+@class   BeatDialog
+@brief   выбор значений параметров
+*/
+class BeatDialog : public Fl_Window
+{
+public:
+    BeatDialog(Fl_Callback* cb);
+    void Init(TDialog* _mol); /// инициализация
+    bool GetPos(); /// присвоить значения
+
+private:
+    Fl_Button button_Ok{ 10, 320, 100, 25, u8"Применить" };
+    Fl_Button button_Cancel{ 150, 320, 100, 25, u8"Отмена" };
+    int m1 = 1; //Ok
+    int m2 = 2; //Cancel
+    Fl_Input in1{ 270, 10, 70, 20, u8"1:" };
+    Fl_Input in2{ 270, 40, 70, 20, u8"2:" };
+    Fl_Input in3{ 270, 70, 70, 20, u8"3:" };
+    Fl_Input in4{ 270, 100, 70, 20, u8"4:" };
+    Fl_Input in5{ 270, 130, 70, 20, u8"5:" };
+    Fl_Input in6{ 270, 160, 70, 20, u8"6:" };
+    Fl_Input in7{ 270, 190, 70, 20, u8"7:" };
+    Fl_Input in8{ 270, 220, 70, 20, u8"8:" };
+    Fl_Input in9{ 270, 250, 70, 20, u8"9:" };
+    Fl_Input in10{ 270, 280, 70, 20, u8"10:" };
+
+    Fl_Choice ch1{ 270, 10, 70, 20, u8"1:" };
+    Fl_Choice ch2{ 270, 40, 70, 20, u8"2:" };
+    Fl_Choice ch3{ 270, 70, 70, 20, u8"3:" };
+    Fl_Choice ch4{ 270, 100, 70, 20, u8"4:" };
+    Fl_Choice ch5{ 270, 130, 70, 20, u8"5:" };
+    Fl_Choice ch6{ 270, 160, 70, 20, u8"6:" };
+    Fl_Choice ch7{ 270, 190, 70, 20, u8"7:" };
+    Fl_Choice ch8{ 270, 220, 70, 20, u8"8:" };
+    Fl_Choice ch9{ 270, 250, 70, 20, u8"9:" };
+    Fl_Choice ch10{ 270, 280, 70, 20, u8"10:" };
+
+    TDialog* mol = NULL;
+    Fl_Input* fieldByIndex(int ind);
+    Fl_Choice* choiceByIndex(int ind);
 };
 
 } // namespace Grasp

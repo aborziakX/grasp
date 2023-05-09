@@ -3,6 +3,7 @@
 //
 // [program/widget] is based in part on the work of the Fast Light Tool Kit (FLTK) project (https://www.fltk.org)
 //
+// В этом файле создается интерфейс пользователя и расположены обработчики событий
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
@@ -63,6 +64,7 @@ AddCubeDialog* add_cube_dlg = NULL;
 CameraXyzDialog* camera_xyz_dlg = NULL;
 CameraSphDialog* camera_sph_dlg = NULL;
 PhysPropDialog* phys_dlg = NULL;
+BeatDialog* bt_dlg = NULL;
 
 // высота меню
 #define MENUBAR_H 25
@@ -75,6 +77,21 @@ PhysPropDialog* phys_dlg = NULL;
 char cCurrentPath[FILENAME_MAX]; // для текущей директории
 
 void FillListBox();
+void bt_dlg_done_cb(Fl_Widget* bt, void* ud);
+void file_save_as_cb(Fl_Widget*, void*);
+
+// чтобы диалог запускаемый по нажатию кнопки стал popup, его надо проинициировать из меню
+void PrepareBeatDialog()
+{
+    if (beatIni != NULL && bt_dlg == NULL)
+    {
+        BeatIni::ErrorLog(L"popup");
+        TDialog* dlg = beatIni->lstDlg.size() > 0 ? beatIni->lstDlg[0] : NULL;
+        bt_dlg = new BeatDialog(bt_dlg_done_cb);
+        bt_dlg->Init(dlg);
+        //bt_dlg->show();
+    }
+}
 
 // Помощь
 void help_cb(Fl_Widget *, void *) 
@@ -85,6 +102,7 @@ void help_cb(Fl_Widget *, void *)
     "Для работы со сценой используйте стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
     "В итоге можно сгенерировать ini-файл.\n"
   );
+  PrepareBeatDialog();
 }
 
 bool IsReady()
@@ -107,7 +125,7 @@ bool IsSelected()
     return true;
 }
 
-//выбор файла
+// выбор файла
 string file_open_dialog(const char * sTitle, const char * sFilter)
 {
     if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
@@ -146,7 +164,7 @@ string file_open_dialog(const char * sTitle, const char * sFilter)
     return sIniFile;
 }
 
-//Открыть Проект
+// Открыть Проект
 void file_open_cb(Fl_Widget*, void*)
 {
     string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER);
@@ -162,6 +180,9 @@ void file_open_cb(Fl_Widget*, void*)
     }
     int n = beatIni->LoadIni(sIniFile.c_str());
     cout << "\nn=" << n;
+    PrepareBeatDialog();
+    FillListBox();
+
     //text2->value(beatIni->lstVal[1]->c_str()); //test
     
     //beatIni->ReadUtf8UnicodeFile(sIniFile.c_str());  //test  
@@ -169,51 +190,60 @@ void file_open_cb(Fl_Widget*, void*)
     //wcout << "\ndata-" << data; //Linux ok
     //std::string ss = BeatIni::wstring_to_utf8(data);
     //text2->value(ss.c_str());
-
 }
 
-//Сохранить Проект
+// Сохранить Проект
 void file_save_cb(Fl_Widget*, void*)
 {
     if (!IsReady()) return;
-    fl_message(u8"file_save_cb");
+    //fl_message(u8"file_save_cb");
+    if (!beatIni->filename.empty())
+        beatIni->Save(beatIni->filename.c_str());
+    else file_save_as_cb(0, 0);
 }
 
-//Создать Проект
+// Создать Проект
 void file_create_cb(Fl_Widget*, void*)
 {
     fl_message(u8"file_create_cb");
 }
 
-//Сохранить как Проект
+// Сохранить как Проект
 void file_save_as_cb(Fl_Widget*, void*)
 {
     if (!IsReady()) return;
-    fl_message(u8"file_save_as_cb");
+    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER);
+    if (sIniFile.empty()) return;
+
+    //fl_message(sIniFile.c_str());
+    beatIni->Save(sIniFile.c_str());
 }
 
-//Генерировать ini
+// Генерировать ini
 void file_gener_cb(Fl_Widget*, void*)
 {
     if (!IsReady()) return;
-    fl_message(u8"file_gener_cb");
+    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_INI_FILTER);
+    if (sIniFile.empty()) return;
+
+    //fl_message(file_gener_cb.c_str());
+    beatIni->GenerateIni(sIniFile.c_str());
 }
 
-//Геометрия/Изменить
+// Геометрия/Изменить
 void edit_cb(Fl_Widget*, void*)
 {
     if (!IsReady()) return;
     fl_message(u8"edit_cb");
 }
 
-//Геометрия/Свойства 
+// Геометрия/Свойства 
 void features_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
     if (m == 1)
     { //Ok
-        double x[10];
-        bool bSuc = phys_dlg->GetPos(x);
+        bool bSuc = phys_dlg->GetPos();
         if (!bSuc)
         {
             fl_message(u8"Ошибка в данных");
@@ -241,7 +271,7 @@ void features_cb(Fl_Widget*, void*)
     phys_dlg->show();
 }
 
-// нажатие кнопки в listbox
+// нажатие кнопки геом.объекта в listbox
 void listbox_cb(Fl_Widget* bt, void* ud)
 {
     //char buf[333] = { 0 };
@@ -268,6 +298,37 @@ void listbox_cb(Fl_Widget* bt, void* ud)
     }
     //else snprintf(buf, 333, "%s", u8"Закрыть.");
     //fl_message(buf);
+}
+
+void bt_dlg_done_cb(Fl_Widget* bt, void* ud)
+{
+    int m = *(int*)ud;
+    if (m == 1)
+    { //Ok
+        bool bSuc = bt_dlg->GetPos();
+        if (!bSuc)
+        {
+            fl_message(u8"Ошибка в данных");
+            return;
+        }
+    }
+    bt_dlg->hide();
+}
+
+// нажатие кнопки диалога в listbox
+void listbox_dial_cb(Fl_Widget* bt, void* ud)
+{
+    if (ud != NULL)
+    {
+        TDialog* dlg = ((TDialog*)ud);
+        //fl_message(dlg->dname.c_str());
+
+        if (bt_dlg == NULL)
+            bt_dlg = new BeatDialog(bt_dlg_done_cb);
+        //bt_dlg->set_modal();
+        bt_dlg->Init(dlg);
+        bt_dlg->show();
+    }
 }
 
 // удалить объект
@@ -340,7 +401,7 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
     }
 }
 
-//камера XYZ завершена
+// камера XYZ завершена
 void camera_xyz_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
@@ -371,7 +432,7 @@ void camera_xyz_done_cb(Fl_Widget* bt, void* ud)
 
     camera_xyz_dlg->hide();
 }
-//открыть камера XYZ диалог
+// открыть камера XYZ диалог
 void camera_xyz_cb(Fl_Widget*, void*)
 {
     if (camera_xyz_dlg == NULL)
@@ -380,7 +441,7 @@ void camera_xyz_cb(Fl_Widget*, void*)
     camera_xyz_dlg->show();
 }
 
-//камера сферичические завершена
+// камера сферичические завершена
 void camera_sph_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
@@ -402,7 +463,7 @@ void camera_sph_done_cb(Fl_Widget* bt, void* ud)
 
     camera_sph_dlg->hide();
 }
-//открыть камера сферичические диалог
+// открыть камера сферичические диалог
 void camera_sph_cb(Fl_Widget*, void*)
 {
     if (camera_sph_dlg == NULL)
@@ -429,8 +490,8 @@ void UpdatePosInfo()
     text2->value(buf);
 }
 
-//Координаты мыши. Переменные инициализируются значениями -1
-//когда клавиши не нажаты
+// Координаты мыши. Переменные инициализируются значениями -1
+// когда клавиши не нажаты
 int xOrigin = -1;
 int yOrigin = -1;
 
@@ -508,8 +569,8 @@ void changeSize(int w, int h)
     glMatrixMode(GL_MODELVIEW);
 }
 
-//Функция обработки нажатия клавиш перемещения
-//Более естественно, когда по стрелке вправо сцена вращается вправо (против часовой), поэтому азимуи уменьшаем (камера смещаетсч влево)
+// Функция обработки нажатия клавиш перемещения
+// Более естественно, когда по стрелке вправо сцена вращается вправо (против часовой), поэтому азимуи уменьшаем (камера смещаетсч влево)
 void processSpecialKeys(int key, int xx, int yy) 
 {
     if (done == 1) return;
@@ -542,7 +603,7 @@ void processSpecialKeys(int key, int xx, int yy)
     render();
 }
 
-//Функция обработки нажатия обычных клавиш
+// Функция обработки нажатия обычных клавиш
 void processNormalKeys(unsigned char key, int xx, int yy) 
 {
     double distance, azimut, elevation;
@@ -567,13 +628,13 @@ void processNormalKeys(unsigned char key, int xx, int yy)
 }
 
 int ct_grp_w = 240; // ширина области виджетов
-int gl_w = 400; //ширина GL окна
-int gl_h = 400; //высота GL окна
+int gl_w = 400; // ширина GL окна
+int gl_h = 400; // высота GL окна
 //int rt_grp_w = 5; // область для будущего
 
-int m1 = 0; //куб
-int m2 = 1; //цил.
-int m3 = 2; //лин.
+int m1 = 0; // куб
+int m2 = 1; // цил.
+int m3 = 2; // лин.
 
 // создать главное окно и виджеты
 void MakeForm(const char *name) 
@@ -692,7 +753,8 @@ void FillListBox()
     int nbuttons = geob_win->GetSize();
     // create buttons: position (xx, xx) will be "fixed" by Fl_Pack/Fl_Flex
     int xx = 35;
-    char ltxt[33];
+    char ltxt[330];
+    // добавить геометрию
     for (int i = 0; i < nbuttons; i++) {       
         GeOb * ob = geob_win->GetObj(i);
         if (ob == NULL) continue;
@@ -704,6 +766,20 @@ void FillListBox()
         b->align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
         xx += 10;
     }
+
+    // добавить диалоги
+    int nb2 = beatIni == NULL ? 0 : (int)beatIni->lstDlg.size();
+    for (int i = 0; i < nb2; i++) {
+        TDialog * ob = beatIni->lstDlg[i];
+        if (ob == NULL) continue;
+        Fl_Button* b = new Fl_Button(xx, xx, 200, 25);
+        b->copy_label(ob->dname.c_str());
+        b->callback(listbox_dial_cb);
+        b->user_data((void*)ob);
+        b->align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
+        xx += 10;
+    }
+
     pack->end();
     pack->redraw();
     scroll->redraw();
@@ -842,6 +918,11 @@ int main(int argc, char **argv)
   {
       delete phys_dlg;
       phys_dlg = NULL;
+  }
+  if (bt_dlg != NULL)
+  {
+      delete bt_dlg;
+      bt_dlg = NULL;
   }
   return 0; 
 }

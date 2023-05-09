@@ -36,6 +36,15 @@ struct TParam
 	string pcomment;	/** комментарий=label text */
 	vector<string*> lstCombo;	/** список значений для combo */
 
+	const char* PtypeToString()
+	{
+		if (ptype == 0) return "double";
+		else if (ptype == 1) return "string";
+		else if (ptype == 2) return "slider";
+		else if (ptype == 3) return "combo";
+		return "int";
+	}
+
 	void Reset()
 	{
 		for (int m = 0; m < lstCombo.size(); m++)
@@ -76,7 +85,7 @@ struct TDialog
 /**
 типы геометрии
 */
-enum geom_type_enum { GO_SPHERE = 0, GO_BOX, GO_CYLINDER, GO_TETRAHEDRON, GO_LINES, GO_GADGET, GO_DEFAULT = 1000 };
+enum geom_type_enum { GO_SPHERE = 0, GO_BOX, GO_CYLINDER, GO_TETRA, GO_LINES, GO_GADGET, GO_DEFAULT = 1000 };
 
 /**
 @struct   TMolecule
@@ -87,7 +96,7 @@ struct TMolecule
 	string objname, composit, fname;
 	double* coord; //points coordinates (for tetrahedron)
 	double x_0, y_0, z_0, radius, dx, dy, dz;
-	int geom_type; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetrahedron, 4 - lines, 5 - gadget, 1000 - default */
+	int geom_type; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
 	int uid; /** unique id */
 	int geob_id; /** unique id of GeOb */
 	double x_min, x_max, y_min, y_max, z_min, z_max;/** bounding box */
@@ -112,6 +121,17 @@ struct TMolecule
 		geom_type = 0;
 		uid = 0;
 		geob_id = 0;
+	}
+
+	const char* PtypeToString()
+	{
+		if (geom_type == 0) return "sphere";
+		else if (geom_type == 1) return "box";
+		else if (geom_type == 2) return "cylinder";
+		else if (geom_type == 3) return "tetra";
+		else if (geom_type == 4) return "lines";
+		else if (geom_type == 5) return "gadget";
+		return "default";
 	}
 
 	void Reset()
@@ -144,6 +164,7 @@ public:
   BeatIni(GeObWindow * gw);
 
   virtual ~BeatIni();
+  string filename; /** название файла проекта */
 
   vector<TMolecule*> TMoleculeList;/** список физических объектов */
   TMolecule defmat;
@@ -155,7 +176,19 @@ public:
   vector<string*> lstVal;	/** список значений */
 
   //void errorLog(const char* sFormat, ...);
-  int LoadIni(const char* fname); /** загрузить файл, создать управляющие структуры */
+  /** 
+  загрузить файл, создать управляющие структуры 
+  */
+  int LoadIni(const char* fname); 
+  /**
+  сохранить проект в файл
+  */
+  bool Save(const char* fname);
+  /**
+  генерировать ini-файл из проекта
+  */
+  bool GenerateIni(const char* fname);
+
   void InitFeatures(TMolecule* mol); /** проинициализировать физ.объект */
   void SetFeature(TMolecule* mol, int index, string& val); /** установить свойство */
 
@@ -192,6 +225,7 @@ public:
   сформировать вектор из указателей на string
   */
   static void split2vector(char* msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart = true);
+  static void split2vector(string& msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart = true);
 
 protected:
 	void Defaults();
@@ -199,6 +233,9 @@ protected:
 	int IniParse(const char* fname);
 	void IniUnload(); /** очистка структур */
 	const char* IniFindValue(const char* key);
+	const char* IniFindValuePos(const char* key, int& npos);
+	void SaveMol(std::wofstream& out, TMolecule* mol);
+	void ParameterFull(std::wofstream& out, TParam* par);
 
 private:
   int nGadgets = 0;/** число датчиков давления. Датчики регистрируют давление, скорость, плотность, температуру, состав смеси.  */
