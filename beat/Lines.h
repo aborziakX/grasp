@@ -18,6 +18,7 @@ public:
   */
     Lines()
     : GeOb(){
+    geom_type = 5;
     bWire = true;
     Init();
   };

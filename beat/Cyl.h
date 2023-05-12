@@ -18,6 +18,7 @@ public:
   */
   Cyl(int _steps = 8)
     : GeOb(){
+    geom_type = 2;
     divide = _steps;
     Init();
   };

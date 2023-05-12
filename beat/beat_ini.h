@@ -95,12 +95,11 @@ struct TMolecule
 {
 	string objname, composit, fname;
 	double* coord; //points coordinates (for tetrahedron)
-	double x_0, y_0, z_0, radius, dx, dy, dz;
+	double x_0, y_0, z_0, dx, dy, dz;
 	int geom_type; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
 	int uid; /** unique id */
 	int geob_id; /** unique id of GeOb */
 	double x_min, x_max, y_min, y_max, z_min, z_max;/** bounding box */
-	double radius_init, dx_init, dy_init, dz_init;	/** initial values */
 	vector<TParam*> lstFeature;	/** список свойств */
 
 	TMolecule()
@@ -113,11 +112,6 @@ struct TMolecule
 		dx = 1.;
 		dy = 1.;
 		dz = 1.;
-		radius = 1.;
-		radius_init = 1.;
-		dx_init = 1.;
-		dy_init = 1.;
-		dz_init = 1.;
 		geom_type = 0;
 		uid = 0;
 		geob_id = 0;

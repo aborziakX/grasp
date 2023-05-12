@@ -1,10 +1,12 @@
 ﻿#include "GeObWindow.h"
+#include "Cube.h"
+#include "Cyl.h"
+#include "Lines.h"
 
 namespace Grasp {
 
 GeObWindow::GeObWindow()
 {
-    lasttime = 0.0;
     vecCam.Copy(0.0, 0.0, 5.0); // позиция камеры
     vecLook.Copy(0.0, 0.0, 0.0); // камера смотрит сюда
     vecTop.Copy(0.0, 1.0, 0.0); ///< вертикальный вектор камеры
@@ -42,6 +44,43 @@ void GeObWindow::Add(GeOb* cube)
             vecFacet.push_back(fac);
     }
     bResort = true;
+}
+
+// создать GeOb и добавить в список (по умолчанию)
+GeOb* GeObWindow::CreateObj(int geom_type, double x_0, double y_0, double z_0, double dx, double dy, double dz, bool bAdd)
+{
+    GeOb* obj = NULL;
+    if( geom_type == 0 )
+    {  // sphere
+    }
+    else if (geom_type == 1)
+    {  // box
+        obj = new Cube();
+        obj->Translate(x_0, y_0, z_0);
+        obj->Scale(dx, dy, dz);
+    }
+    else if (geom_type == 2)
+    {  // cylinder
+        obj = new Cyl();
+        obj->Translate(x_0, y_0, z_0);
+        obj->Scale(dx, dy, dz);
+    }
+    else if (geom_type == 3)
+    {  // tetra
+    }
+    else if (geom_type == 4)
+    {  // cylinder
+    }
+    else if (geom_type == 5)
+    {  // lines
+    }
+    else if (geom_type == 1000)
+    {  // default
+    }
+
+    if (obj != NULL && bAdd) Add(obj);
+
+    return obj;
 }
 
 

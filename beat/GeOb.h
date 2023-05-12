@@ -183,6 +183,13 @@ public:
   int GetIndex() {
       return ge_id;
   }
+  
+  /**
+  вернуть тип
+  */
+  int GetGeomType() {
+      return geom_type;
+  }
 
   /**
   очистить грани
@@ -310,6 +317,7 @@ public:
 protected:
   std::vector<Facet3 *> vecFacet; ///< список граней
   std::string name; ///< название
+  int geom_type=1; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
 
 private:
   double dScaleX = 1.0, dScaleY = 1.0, dScaleZ = 1.0; ///< масштабирование

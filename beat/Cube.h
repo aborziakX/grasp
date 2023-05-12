@@ -18,6 +18,7 @@ public:
   */
   Cube()
     : GeOb(){
+    geom_type=1;
     Init();
   };
 

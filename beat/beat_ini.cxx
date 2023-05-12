@@ -31,21 +31,32 @@ namespace Grasp {
 	  int rc = IniParse(fname);
 	  filename = fname;
 
-	  const char* val;
 	  vector<string*> lst;
-	  // восстанавливаем кубы
-	  int npos = 0, geom_must = 7;
-	  while (npos >= 0)
+	  GeOb* obj = NULL;
+	  int npos = 0, geom_must = 7, i, j, geom_type = 0;
+
+	  // восстанавливаем кубы etc
+	  for (j = 0; j < lstKey.size(); j++)
 	  {
-		  //box=0,0,0, 15,15,15, 0, 293,1000000,0,0,0, box1
-		  //x,y,z, dx,dy,dz, features, name
-		  val = IniFindValuePos("box", npos);
-		  if (val == NULL)
-			  break;
+		  string key = *lstKey[j];
+		  string val = *lstVal[j];
 
-		  npos++;
+		  if (key == "box")
+		  {   //box=0,0,0, 15,15,15,  0,0,0, 10, 293,1000000, box1
+			  //x,y,z, dx,dy,dz, features (speed 3, mass, temp, color), name
+			  if (val == "")
+				  continue;
+			  geom_must = 7;
+			  geom_type = 1;
+		  }
+		  else if (key == "cylinder")
+		  {
+			  geom_must = 7;
+			  geom_type = 2;
+		  }
+		  else continue;
+
 		  string qs = val;
-
 		  split2vector(qs, ',', lst);
 
 		  if (lst.size() < geom_must)
@@ -56,18 +67,23 @@ namespace Grasp {
 			  x_1 = atof(lst[3]->c_str()),
 			  y_1 = atof(lst[4]->c_str()),
 			  z_1 = atof(lst[5]->c_str());
-		  string composit = *lst[6];
+		  string name = *lst[lst.size() - 1];
 
-		  //geob_win->AddBoxX(lst[lst.size() - 1], x_0, y_0, z_0, x_1, y_1, z_1, composit);
+		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, true);
 
 		  TMolecule* mol = new TMolecule();
-		  //TODO add features!
-		  TMoleculeList.push_back(mol);
-		  for (int i = 0; i < mol->lstFeature.size(); i++)
+		  mol->geom_type = geom_type;
+		  mol->geob_id = obj->GetIndex();
+		  char buf[33];
+		  sprintf_s(buf, "phy_%d", mol->geob_id);
+		  mol->objname = buf;
+		  InitFeatures(mol);
+		  for (int i = 0; i < (int)mol->lstFeature.size(); i++)
 		  {
-			  if (lst.size() > i + geom_must)
+			  if ((int)lst.size() > i + geom_must)
 				  SetFeature(mol, i, *lst[i + geom_must]);
 		  }
+		  TMoleculeList.push_back(mol);
 	  }
 	  split2vector(NULL, ',', lst); //чистка
 
@@ -751,6 +767,7 @@ namespace Grasp {
   void BeatIni::AddGeOb(GeOb* cub3)
   {
 	  TMolecule* mol = new TMolecule();
+	  mol->geom_type = cub3->GetGeomType();
 	  mol->geob_id = cub3->GetIndex();
 	  char buf[33];
 	  sprintf_s(buf, "phy_%d", mol->geob_id);
@@ -802,7 +819,7 @@ namespace Grasp {
 
 	  // сохранить геометрию
 	  outFile << endl << "[Geom]" << endl;
-	  int len = TMoleculeList.size();
+	  int len = (int)TMoleculeList.size();
 	  nGadgets = 0;
 	  for (int m = 0; m < len; m++)
 	  {
@@ -866,7 +883,7 @@ namespace Grasp {
 	  }
 	  outFile << endl;
 
-	  int len = TMoleculeList.size();
+	  int len = (int)TMoleculeList.size();
 	  nGadgets = 0;
 	  for (int m = 0; m < len; m++)
 	  {
@@ -894,17 +911,17 @@ namespace Grasp {
 	  if (mol->geom_type == GO_SPHERE)
 	  {
 		  out << "sphere=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
-			  << mol->radius << "," << utf8_to_wstring(mol->composit);
+			  << mol->dx << "," << mol->dy << "," << mol->dz;// << "," << utf8_to_wstring(mol->composit);
 	  }
 	  else if (mol->geom_type == GO_BOX)
 	  {
 		  out << "box=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
-			  << mol->dx << "," << mol->dy << "," << mol->dz << "," << utf8_to_wstring(mol->composit);
+			  << mol->dx << "," << mol->dy << "," << mol->dz;// << "," << utf8_to_wstring(mol->composit);
 	  }
 	  else if (mol->geom_type == GO_CYLINDER)
 	  {
 		  out << "cylinder=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
-			  << mol->radius << "," << mol->dx << "," << mol->dy << "," << utf8_to_wstring(mol->composit);
+			  << mol->dx << "," << mol->dy << "," << mol->dz;// << "," << utf8_to_wstring(mol->composit);
 	  }
 	  /*else if (mol->geom_type == GO_TETRAHEDRON)
 	  {

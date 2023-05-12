@@ -252,12 +252,16 @@ public:
   }
 
   /**
-  удалить GeOb из списока
+  удалить GeOb из списка
   */
   void Delete(GeOb* cube);
 
+  /**
+  создать GeOb и добавить в список (по умолчанию)
+  */
+  GeOb * CreateObj(int typ, double x_0, double y_0, double z_0, double dx, double dy, double dz, bool bAdd = true);
+
   int wire = 0;
-  double lasttime = 0.0, size = 1.0;
   Fl_Glut_Window* win_glut = NULL;
 
 protected:
