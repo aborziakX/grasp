@@ -19,7 +19,7 @@ public:
   Cyl(int _steps = 8)
     : GeOb(){
     geom_type = 2;
-    divide = _steps;
+    nSide = _steps;
     Init();
   };
 
@@ -39,7 +39,6 @@ protected:
 private:
     double height = 1.0; ///< высота
     double radius = 0.5; ///< радиус
-    int divide; ///< число шагов
 };
 
 

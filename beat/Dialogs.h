@@ -38,7 +38,10 @@ class AddCubeDialog : public Fl_Window
 {
     public:
         AddCubeDialog(Fl_Callback * cb);
-        bool GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc);
+        void Init(GeOb* _mol, int _geom_type); /** инициализация */
+        bool GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int& nSide);
+        int geom_type = 1;
+        GeOb* geob = NULL;
 
     private:
         Fl_Button button_Ok{ 10, 220, 100, 25, u8"Применить" };
@@ -51,6 +54,7 @@ class AddCubeDialog : public Fl_Window
         Fl_Input inScX{ 150, 10, 70, 20, u8"масш.x:" };
         Fl_Input inScY{ 150, 40, 70, 20, u8"масш.y:" };
         Fl_Input inScZ{ 150, 70, 70, 20, u8"масш.z:" };
+        Fl_Input inSide{ 170, 100, 70, 20, u8"число боковых граней:" };
 };
 
 /**

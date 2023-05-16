@@ -259,19 +259,33 @@ public:
   /**
   создать GeOb и добавить в список (по умолчанию)
   */
-  GeOb * CreateObj(int typ, double x_0, double y_0, double z_0, double dx, double dy, double dz, bool bAdd = true);
+  GeOb * CreateObj(int typ, double x_0, double y_0, double z_0, double dx, double dy, double dz, 
+      int nSide, bool bAdd = true);
+
+  /**
+  найти GeOb по id
+  */
+  GeOb* FindObjById(int id);
+
+  /**
+  обновить список граней vecFacet
+  */
+  void UpdateFacets();
+
+  // очистить список граней vecFacet
+  void ClearFacets();
 
   int wire = 0;
   Fl_Glut_Window* win_glut = NULL;
 
 protected:
-  std::vector<GeOb *> vecGeOb; ///< список Геометрических объектов
+  std::vector<GeOb *> vecGeOb; /** список Геометрических объектов */
 
-  std::vector<Facet3*> vecFacet; ///< список граней
+  std::vector<Facet3*> vecFacet; /** список граней */
 
-  Vec3 vecCam; ///< позиция камеры
-  Vec3 vecLook; ///< камера смотрит сюда
-  Vec3 vecTop; ///< вертикальный вектор камеры
+  Vec3 vecCam; /** позиция камеры */
+  Vec3 vecLook; /** камера смотрит сюда */
+  Vec3 vecTop; /** вертикальный вектор камеры */
 
 private:
   double dRotateZ = 0, dRotateX = 0, dRotateY = 0;
@@ -279,7 +293,7 @@ private:
   //??45
   double distance = 9.0, azimut = (MY_PI * 45.0 / 180.0), elevation = (MY_PI * 30.0 / 180.0); ///< камера в полярных координатах (радианы)
 
-  bool bResort;
+  bool bResort; /** true = пересортировать vecFacet */
   void ResortFacet(Vec3& vecCam, Vec3& vecCamDir);
   bool bCanDraw = true;
 };

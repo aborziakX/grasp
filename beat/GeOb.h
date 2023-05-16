@@ -209,6 +209,7 @@ public:
   */
   virtual void Init() {
       dShiftX = 0; dShiftY = 0; dShiftZ = 0;
+      dScaleX = 1.0; dScaleY = 1.0; dScaleZ = 1.0;
       Clear();
   }
 
@@ -296,6 +297,15 @@ public:
   void Transform() { Init(); }
 
   /**
+  получить число боковых граней
+  */
+  int GetNside() { return nSide; }
+  /**
+  задать число боковых граней
+  */
+  void SetNside(int ns) { nSide = ns; Init();  }
+
+  /**
   получить каналы цвета ярче
   */
   void GetColorBright(unsigned char& _red, unsigned char& _green, unsigned char& _blue, double d, double add) {
@@ -310,25 +320,26 @@ public:
   }
 
   float lasttime = 0.0, diameter = 1.0;
-  bool bWire = false; ///< true=только ребра
-  bool bNormal = false; ///< true=рисовать нормали
-  bool bSelect = false; ///< true=рисовать куб вокруг
+  bool bWire = false; /** true=только ребра */
+  bool bNormal = false; /** true=рисовать нормали */
+  bool bSelect = false; /** true=рисовать куб вокруг */
 
 protected:
-  std::vector<Facet3 *> vecFacet; ///< список граней
-  std::string name; ///< название
+  std::vector<Facet3 *> vecFacet; /** список граней */
+  std::string name; /** название */
   int geom_type=1; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
+  int nSide; /** число боковых граней */
 
 private:
-  double dScaleX = 1.0, dScaleY = 1.0, dScaleZ = 1.0; ///< масштабирование
-  double dShiftX = 0, dShiftY = 0, dShiftZ = 0; ///< сдвиг
+  double dScaleX = 1.0, dScaleY = 1.0, dScaleZ = 1.0; /** масштабирование */
+  double dShiftX = 0, dShiftY = 0, dShiftZ = 0; /** сдвиг */
 
-  unsigned char red = 0, green = 255, blue = 0; ///< каналы цвета
+  unsigned char red = 0, green = 255, blue = 0; /** каналы цвета */
 
   bool bNeedTransf = true;
 
-  int ge_id;  ///< индекс
-  static int counter; ///< счетчик
+  int ge_id;  /** индекс */
+  static int counter; /** счетчик */
 };
 
 } // namespace Grasp

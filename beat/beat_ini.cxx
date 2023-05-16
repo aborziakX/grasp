@@ -33,7 +33,7 @@ namespace Grasp {
 
 	  vector<string*> lst;
 	  GeOb* obj = NULL;
-	  int npos = 0, geom_must = 7, i, j, geom_type = 0;
+	  int npos = 0, geom_must = 7, j, geom_type = 0;
 
 	  // восстанавливаем кубы etc
 	  for (j = 0; j < lstKey.size(); j++)
@@ -42,8 +42,8 @@ namespace Grasp {
 		  string val = *lstVal[j];
 
 		  if (key == "box")
-		  {   //box=0,0,0, 15,15,15,  0,0,0, 10, 293,1000000, box1
-			  //x,y,z, dx,dy,dz, features (speed 3, mass, temp, color), name
+		  {   //box=0,0,0, 15,15,15, 4, 0,0,0, 10, 293,1000000, box1
+			  //x,y,z, dx,dy,dz, nSide, features (speed 3, mass, temp, color), name
 			  if (val == "")
 				  continue;
 			  geom_must = 7;
@@ -67,12 +67,12 @@ namespace Grasp {
 			  x_1 = atof(lst[3]->c_str()),
 			  y_1 = atof(lst[4]->c_str()),
 			  z_1 = atof(lst[5]->c_str());
+		  int nSide = atoi(lst[6]->c_str());
 		  string name = *lst[lst.size() - 1];
 
-		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, true);
+		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, nSide, true);
 
 		  TMolecule* mol = new TMolecule();
-		  mol->geom_type = geom_type;
 		  mol->geob_id = obj->GetIndex();
 		  char buf[33];
 		  sprintf_s(buf, "phy_%d", mol->geob_id);
@@ -88,239 +88,6 @@ namespace Grasp {
 	  split2vector(NULL, ',', lst); //чистка
 
 	  return rc;
-	  /*char buf[330];
-	  char* val = IniFindValue("pProblemName");
-	  if (val != NULL) pProblemName = val;
-	  val = IniFindValue("NX_SHOCK");
-	  if (val != NULL) NX_SHOCK = atoi(val);
-	  val = IniFindValue("NY_SHOCK");
-	  if (val != NULL) NY_SHOCK = atoi(val);
-	  val = IniFindValue("NZ_SHOCK");
-	  if (val != NULL) NZ_SHOCK = atoi(val);
-
-	  val = IniFindValue("nCheckFiles");
-	  if (val != NULL) nCheckFiles = atoi(val);
-	  val = IniFindValue("nBoundary_0");
-	  if (val != NULL) nBoundary[0] = atoi(val);
-	  val = IniFindValue("nBoundary_1");
-	  if (val != NULL) nBoundary[1] = atoi(val);
-	  val = IniFindValue("nBoundary_2");
-	  if (val != NULL) nBoundary[2] = atoi(val);
-	  val = IniFindValue("nBoundary_3");
-	  if (val != NULL) nBoundary[3] = atoi(val);
-	  val = IniFindValue("nBoundary_4");
-	  if (val != NULL) nBoundary[4] = atoi(val);
-	  val = IniFindValue("nBoundary_5");
-	  if (val != NULL) nBoundary[5] = atoi(val);
-
-	  val = IniFindValue("nNXProcessors");
-	  if (val != NULL) nNXProcessors = atoi(val);
-	  val = IniFindValue("nNYProcessors");
-	  if (val != NULL) nNYProcessors = atoi(val);
-	  val = IniFindValue("nNZProcessors");
-	  if (val != NULL) nNZProcessors = atoi(val);
-
-	  val = IniFindValue("x_0");
-	  if (val != NULL) m_x_0 = atoi(val);
-	  val = IniFindValue("y_0");
-	  if (val != NULL) m_y_0 = atoi(val);
-	  val = IniFindValue("z_0");
-	  if (val != NULL) m_z_0 = atoi(val);
-	  val = IniFindValue("x_1");
-	  if (val != NULL) m_x_1 = atoi(val);
-	  val = IniFindValue("y_1");
-	  if (val != NULL) m_y_1 = atoi(val);
-	  val = IniFindValue("z_1");
-	  if (val != NULL) m_z_1 = atoi(val);
-
-	  val = IniFindValue("NS");
-	  if (val != NULL) NS = atoi(val);
-
-	  for (int i = 0; i < NS; i++)
-	  {
-		  //material_0=air.mat
-		  sprintf(buf, "material_%d", i);
-		  val = IniFindValue(buf);
-		  if (val != NULL) mat_name[i] = val;
-	  }
-
-	  val = IniFindValue("nGadgets");
-	  if (val != NULL) nGadgets = atoi(val);
-	  for (int i = 0; i < nGadgets; i++)
-	  {
-		  //gadgetX_0=0
-		  double x_0 = 0, y_0 = 0, z_0 = 0;
-		  sprintf(buf, "gadgetX_%d", i);
-		  val = IniFindValue(buf);
-		  if (val != NULL) x_0 = atof(val);
-
-		  sprintf(buf, "gadgetY_%d", i);
-		  val = IniFindValue(buf);
-		  if (val != NULL) y_0 = atof(val);
-
-		  sprintf(buf, "gadgetZ_%d", i);
-		  val = IniFindValue(buf);
-		  if (val != NULL) z_0 = atof(val);
-
-		  sprintf(buf, "gadget_%d", i);
-		  QString qs = buf;
-		  pApp->AddGadX(qs, x_0, y_0, z_0);
-	  }
-
-
-
-	  npos = 0;
-	  geom_must = 7;
-	  while (npos >= 0)
-	  {
-		  //box=0,0,0,15,15,15,0,293,1000000,0,0,0,box1
-		  val = IniFindValuePos("box", npos);
-		  qDebug() << val;
-		  if (val == NULL)
-			  break;
-
-		  npos++;
-		  QString qs = val;
-
-		  QStringList lst = qs.split(',');
-		  if (lst.count() < geom_must)
-			  continue;
-		  double x_0 = lst[0].toDouble(), y_0 = lst[1].toDouble(), z_0 = lst[2].toDouble(),
-			  x_1 = lst[3].toDouble(), y_1 = lst[4].toDouble(), z_1 = lst[5].toDouble();
-		  QString composit = lst[6];
-
-		  pApp->AddBoxX(lst[lst.count() - 1], x_0, y_0, z_0, x_1, y_1, z_1, composit);
-
-		  TMolecule* mol = TMoleculeList[TMoleculeList.length() - 1];
-		  for (int i = 0; i < mol->lstFeature.count(); i++)
-		  {
-			  if (lst.count() > i + geom_must)
-				  SetFeature(mol, i, lst[i + geom_must]);
-		  }
-	  }
-
-	  npos = 0;
-	  geom_must = 7;
-	  while (npos >= 0)
-	  {
-		  //cylinder=20,20,20,5,30,1,0,293,100000,0,0,0,cyl1
-		  val = IniFindValuePos("cylinder", npos);
-		  qDebug() << val;
-		  if (val == NULL)
-			  break;
-
-		  npos++;
-		  QString qs = val;
-
-		  QStringList lst = qs.split(',');
-		  if (lst.count() < geom_must)
-			  continue;
-		  double x_0 = lst[0].toDouble(), y_0 = lst[1].toDouble(), z_0 = lst[2].toDouble(), radius = lst[3].toDouble(),
-			  height = lst[4].toDouble();
-		  int axe = lst[5].toInt();
-		  QString composit = lst[6];
-
-		  pApp->AddCylX(lst[lst.count() - 1], x_0, y_0, z_0, radius, height, axe, composit);
-
-		  TMolecule* mol = TMoleculeList[TMoleculeList.length() - 1];
-		  for (int i = 0; i < mol->lstFeature.count(); i++)
-		  {
-			  if (lst.count() > i + geom_must)
-				  SetFeature(mol, i, lst[i + geom_must]);
-		  }
-	  }
-
-	  npos = 0;
-	  geom_must = 13;
-	  while (npos >= 0)
-	  {
-		  //tetra=20,20,20,5,30,1,0,293,100000,0,0,0,cyl1
-		  val = IniFindValuePos("tetra", npos);
-		  qDebug() << val;
-		  if (val == NULL)
-			  break;
-
-		  npos++;
-		  QString qs = val;
-
-		  QStringList lst = qs.split(',');
-		  if (lst.count() < geom_must)
-			  continue;
-
-		  double coord[12];
-		  for (int k = 0; k < 12; k++)
-			  coord[k] = lst[k].toDouble();
-		  QString composit = lst[12];
-
-		  pApp->AddTetraX(lst[lst.count() - 1], coord, composit);
-
-		  TMolecule* mol = TMoleculeList[TMoleculeList.length() - 1];
-		  for (int i = 0; i < mol->lstFeature.count(); i++)
-		  {
-			  if (lst.count() > i + geom_must)
-				  SetFeature(mol, i, lst[i + geom_must]);
-		  }
-	  }
-
-	  npos = 0;
-	  geom_must = 8;
-	  while (npos >= 0)
-	  {
-		  //poly=0,0,0,1,1,1,C:/C_devel/science/vtk/Beat/build/ach_cyl.vtp,-1,100000,293,0,0,0,poly0
-		  val = IniFindValuePos("poly", npos);
-		  qDebug() << val;
-		  if (val == NULL)
-			  break;
-
-		  npos++;
-		  QString qs = val;
-
-		  QStringList lst = qs.split(',');
-		  if (lst.count() < geom_must)
-			  continue;
-		  double x_0 = lst[0].toDouble(), y_0 = lst[1].toDouble(), z_0 = lst[2].toDouble(),
-			  x_1 = lst[3].toDouble(), y_1 = lst[4].toDouble(), z_1 = lst[5].toDouble();
-		  QString fname = lst[6];
-		  QString composit = lst[7];
-
-		  pApp->AddPolyX(lst[lst.count() - 1], x_0, y_0, z_0, x_1, y_1, z_1, fname, composit);
-
-		  TMolecule* mol = TMoleculeList[TMoleculeList.length() - 1];
-		  for (int i = 0; i < mol->lstFeature.count(); i++)
-		  {
-			  if (lst.count() > i + geom_must)
-				  SetFeature(mol, i, lst[i + geom_must]);
-		  }
-	  }
-
-	  geom_must = 1;
-	  val = IniFindValue("default");
-	  if (val != NULL)
-	  {
-		  //default=0,293,0,0,0,media
-		  QString qs = val;
-		  QStringList lst = qs.split(',');
-		  defmat.composit = lst[0] != "" ? lst[0] : "0";
-		  defmat.objname = lst[lst.count() - 1];
-		  for (int i = 0; i < defmat.lstFeature.count(); i++)
-		  {
-			  if (lst.count() > i + geom_must)
-				  SetFeature(&defmat, i, lst[i + geom_must]);
-		  }
-	  }
-
-	  //set TDialog params
-	  for (int m = 0; m < lstDlg.count(); m++)
-	  {
-		  TDialog* dlg = lstDlg[m];
-		  for (int k = 0; k < lstDlg[m]->lstParams.count(); k++)
-		  {
-			  TParam* par = dlg->lstParams[k];
-			  val = IniFindValue(par->pname.toAscii());
-			  if (val != NULL) par->pcurr = val;
-			  else par->pcurr = par->pvalue;
-		  }
-	  }*/
   }
 
   // возвращает строку без пробелов вначале и вконце
@@ -767,7 +534,6 @@ namespace Grasp {
   void BeatIni::AddGeOb(GeOb* cub3)
   {
 	  TMolecule* mol = new TMolecule();
-	  mol->geom_type = cub3->GetGeomType();
 	  mol->geob_id = cub3->GetIndex();
 	  char buf[33];
 	  sprintf_s(buf, "phy_%d", mol->geob_id);
@@ -777,12 +543,12 @@ namespace Grasp {
   }
 
   // найти физ.объект по индексу
-  TMolecule* BeatIni::FindMolecule(int index)
+  TMolecule* BeatIni::FindMolecule(int geob_id)
   {
 	  for (int i = 0; i < TMoleculeList.size(); i++)
 	  {
 		  TMolecule * mol = TMoleculeList[i];
-		  if (mol->geob_id == index)
+		  if (mol->geob_id == geob_id)
 			  return mol;
 	  }
 	  return NULL;
@@ -908,34 +674,36 @@ namespace Grasp {
 
   void BeatIni::SaveMol(std::wofstream& out, TMolecule* mol)
   {
-	  if (mol->geom_type == GO_SPHERE)
+	  GeOb * geob = geob_win->FindObjById(mol->geob_id);
+	  if (geob == NULL) return;
+
+	  double x_0, y_0, z_0, dx, dy, dz;
+	  geob->GetShift(x_0, y_0, z_0);
+	  geob->GetScale(dx, dy, dz);
+	  int geom_type = geob->GetGeomType();
+	  int nSide = geob->GetNside();
+
+	  if (geom_type == GO_SPHERE)
 	  {
-		  out << "sphere=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
-			  << mol->dx << "," << mol->dy << "," << mol->dz;// << "," << utf8_to_wstring(mol->composit);
+		  out << "sphere=" << x_0 << "," << y_0 << "," << z_0 << ","
+			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
-	  else if (mol->geom_type == GO_BOX)
+	  else if (geom_type == GO_BOX)
 	  {
-		  out << "box=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
-			  << mol->dx << "," << mol->dy << "," << mol->dz;// << "," << utf8_to_wstring(mol->composit);
+		  out << "box=" << x_0 << "," << y_0 << "," << z_0 << ","
+			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
-	  else if (mol->geom_type == GO_CYLINDER)
+	  else if (geom_type == GO_CYLINDER)
 	  {
-		  out << "cylinder=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
-			  << mol->dx << "," << mol->dy << "," << mol->dz;// << "," << utf8_to_wstring(mol->composit);
+		  out << "cylinder=" << x_0 << "," << y_0 << "," << z_0 << ","
+			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
-	  /*else if (mol->geom_type == GO_TETRAHEDRON)
+	  /*else if (geom_type == GO_POLY)
 	  {
-		  out << "tetra=";
-		  for (int k = 0; k < 12; k++)
-			  out << mol->coord[k] << ",";
-		  out << mol->composit;
+		  out << "poly=" << x_0 << "," << y_0 << "," << z_0 << ","
+			  << dx << "," << dy << "," << dz << "," << mol->fname << "," << mol->composit;
 	  }*/
-	  /*else if (mol->geom_type == GO_POLY)
-	  {
-		  out << "poly=" << mol->x_0 << "," << mol->y_0 << "," << mol->z_0 << ","
-			  << mol->dx << "," << mol->dy << "," << mol->dz << "," << mol->fname << "," << mol->composit;
-	  }*/
-	  else if (mol->geom_type == GO_DEFAULT)
+	  else if (geom_type == GO_DEFAULT)
 		  out << "default=" << utf8_to_wstring(mol->composit);
 	  else return;
 

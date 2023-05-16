@@ -94,37 +94,22 @@ enum geom_type_enum { GO_SPHERE = 0, GO_BOX, GO_CYLINDER, GO_TETRA, GO_LINES, GO
 struct TMolecule
 {
 	string objname, composit, fname;
-	double* coord; //points coordinates (for tetrahedron)
-	double x_0, y_0, z_0, dx, dy, dz;
-	int geom_type; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
-	int uid; /** unique id */
 	int geob_id; /** unique id of GeOb */
-	double x_min, x_max, y_min, y_max, z_min, z_max;/** bounding box */
 	vector<TParam*> lstFeature;	/** список свойств */
 
 	TMolecule()
 	{
-		coord = NULL;
-		x_0 = 0.;
-		y_0 = 0.;
-		z_0 = 0.;
-		x_min = x_max = y_min = y_max = z_min = z_max = 0.;
-		dx = 1.;
-		dy = 1.;
-		dz = 1.;
-		geom_type = 0;
-		uid = 0;
 		geob_id = 0;
 	}
 
-	const char* PtypeToString()
+	static const char* PtypeToString(geom_type_enum geom_type)
 	{
-		if (geom_type == 0) return "sphere";
-		else if (geom_type == 1) return "box";
-		else if (geom_type == 2) return "cylinder";
-		else if (geom_type == 3) return "tetra";
-		else if (geom_type == 4) return "lines";
-		else if (geom_type == 5) return "gadget";
+		if (geom_type == GO_SPHERE) return "sphere";
+		else if (geom_type == GO_BOX) return "box";
+		else if (geom_type == GO_CYLINDER) return "cylinder";
+		else if (geom_type == GO_TETRA) return "tetra";
+		else if (geom_type == GO_LINES) return "lines";
+		else if (geom_type == GO_GADGET) return "gadget";
 		return "default";
 	}
 
@@ -135,12 +120,6 @@ struct TMolecule
 			delete lstFeature[k];
 		}
 		lstFeature.resize(0);
-
-		if (coord != NULL)
-		{
-			delete coord;
-			coord = NULL;
-		}
 	}
 	~TMolecule()
 	{

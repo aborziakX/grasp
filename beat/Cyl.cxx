@@ -22,7 +22,7 @@ void Cyl::Init() {
 
     double x0, y0, z0 = 0.0, x1, y1, z1 = 2.0 * radius, size = height;
     Vec3 v0, v1, v2, v3;
-    double angle_step = (MY_2PI / divide);
+    double angle_step = (MY_2PI / nSide);
     double angle;
     double dH = size;
 
@@ -31,7 +31,7 @@ void Cyl::Init() {
     for (int j = 0; j < 1; j++)
     {
         angle = 0;
-        for (int i = 0; i < divide; i++)
+        for (int i = 0; i < nSide; i++)
         {
             //вершины
             x0 = cos(angle) * radius;
@@ -59,7 +59,7 @@ void Cyl::Init() {
 
     //верхний торец
     angle = 0;
-    for (int i = 0; i < divide; i++)
+    for (int i = 0; i < nSide; i++)
     {
         //вершины
         x0 = cos(angle) * radius;
@@ -83,7 +83,7 @@ void Cyl::Init() {
 
     //нижний торец
     angle = 0;
-    for (int i = 0; i < divide; i++)
+    for (int i = 0; i < nSide; i++)
     {
         //вершины
         x0 = cos(angle) * radius;

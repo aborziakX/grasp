@@ -47,7 +47,8 @@ void GeObWindow::Add(GeOb* cube)
 }
 
 // создать GeOb и добавить в список (по умолчанию)
-GeOb* GeObWindow::CreateObj(int geom_type, double x_0, double y_0, double z_0, double dx, double dy, double dz, bool bAdd)
+GeOb* GeObWindow::CreateObj(int geom_type, double x_0, double y_0, double z_0, double dx, double dy, double dz, 
+    int nSide, bool bAdd)
 {
     GeOb* obj = NULL;
     if( geom_type == 0 )
@@ -61,7 +62,7 @@ GeOb* GeObWindow::CreateObj(int geom_type, double x_0, double y_0, double z_0, d
     }
     else if (geom_type == 2)
     {  // cylinder
-        obj = new Cyl();
+        obj = new Cyl(nSide);
         obj->Translate(x_0, y_0, z_0);
         obj->Scale(dx, dy, dz);
     }
@@ -470,6 +471,41 @@ void GeObWindow::Delete(GeOb* cube)
     vecGeOb[i] = NULL;
     vecGeOb.resize(vecGeOb.size() - 1);
 
+    bResort = true;
+}
+
+// найти GeOb по id
+GeOb* GeObWindow::FindObjById(int id)
+{
+    for (int i = 0; i < vecGeOb.size(); i++) {
+        if (vecGeOb[i] == NULL)
+            continue;
+        if (vecGeOb[i]->GetIndex() == id)
+            return vecGeOb[i];
+    }
+    return NULL;
+}
+
+// очистить список граней
+void GeObWindow::ClearFacets()
+{
+    vecFacet.clear();
+}
+
+// обновить список граней
+void GeObWindow::UpdateFacets()
+{
+    vecFacet.clear();
+    for (int i = 0; i < vecGeOb.size(); i++) {
+        if (vecGeOb[i] == NULL)
+            continue;
+        for (int j = 0; j < vecGeOb[i]->GetSize(); j++)
+        {
+            Facet3* fac = vecGeOb[i]->GetFacet(j);
+            if (fac != NULL)
+                vecFacet.push_back(fac);
+        }
+    }
     bResort = true;
 }
 

@@ -32,7 +32,7 @@ AddCubeDialog::AddCubeDialog(Fl_Callback* cb) :
 
     //box_result.align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
 }
-bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc)
+bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int &nSide)
 {
     bool rc = true;
     try {
@@ -42,11 +42,65 @@ bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double&
         xSc = atof(inScX.value());
         ySc = atof(inScY.value());
         zSc = atof(inScZ.value());
+        nSide = atoi(inSide.value());
     }
     catch (...) {
         rc = false;
     }
     return rc;
+}
+// инициализация
+void AddCubeDialog::Init(GeOb* _geob, int _geom_type)
+{
+    geob = _geob;
+    /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
+    geom_type = _geom_type;
+
+    char buf[33];
+    double x, y, z;
+    if (geob == NULL)
+    { // новый объект
+        inX.value("0.0");
+        inY.value("0.0");
+        inZ.value("0.0");
+        inScX.value("1.0");
+        inScY.value("1.0");
+        inScZ.value("1.0");
+        inSide.value("8");
+
+        if (geom_type == 1) this->copy_label(u8"Добавить куб");
+        else if (geom_type == 2) this->copy_label(u8"Добавить цилиндр");
+    }
+    else
+    {
+        geob->GetShift(x, y, z);
+        sprintf_s(buf, "%.3f", x);
+        inX.value(buf);
+
+        sprintf_s(buf, "%.3f", y);
+        inY.value(buf);
+
+        sprintf_s(buf, "%.3f", z);
+        inZ.value(buf);
+
+        geob->GetScale(x, y, z);
+        sprintf_s(buf, "%.3f", x);
+        inScX.value(buf);
+
+        sprintf_s(buf, "%.3f", y);
+        inScY.value(buf);
+
+        sprintf_s(buf, "%.3f", z);
+        inScZ.value(buf);
+
+        sprintf_s(buf, "%d", geob->GetNside());
+        inSide.value(buf);
+
+        if (geom_type == 1) this->copy_label(u8"Изменить куб");
+        else if (geom_type == 2) this->copy_label(u8"Изменить цилиндр");
+    }
+    if (geom_type == 1) inSide.clear_visible();
+    else inSide.set_visible();
 }
 //==
 

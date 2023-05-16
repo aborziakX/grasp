@@ -79,6 +79,7 @@ char cCurrentPath[FILENAME_MAX]; // для текущей директории
 void FillListBox();
 void bt_dlg_done_cb(Fl_Widget* bt, void* ud);
 void file_save_as_cb(Fl_Widget*, void*);
+void add_cube_done_cb(Fl_Widget*, void*);
 
 // чтобы диалог запускаемый по нажатию кнопки стал popup, его надо проинициировать из меню
 void PrepareBeatDialog()
@@ -234,7 +235,14 @@ void file_gener_cb(Fl_Widget*, void*)
 void edit_cb(Fl_Widget*, void*)
 {
     if (!IsReady()) return;
-    fl_message(u8"edit_cb");
+    //fl_message(u8"edit_cb");
+    if (!IsSelected()) return;
+
+    int geom_type = geobCurrent->GetGeomType();
+    if (add_cube_dlg == NULL)
+        add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+    add_cube_dlg->Init(geobCurrent, geom_type);
+    add_cube_dlg->show();
 }
 
 // Геометрия/Свойства 
@@ -358,22 +366,47 @@ void pass_window_done_cb(Fl_Widget* bt, void* ud)
 void add_cube_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
+    GeOb* cub3 = NULL;
+    bool bNew = false;
     if (m == 1)
     { //Ok
         double x, y, z, xSc, ySc, zSc;
-        bool bSuc = add_cube_dlg->GetPos(x, y, z, xSc, ySc, zSc);
+        int nSide;
+        bool bSuc = add_cube_dlg->GetPos(x, y, z, xSc, ySc, zSc, nSide);
         if (!bSuc)
         {
             fl_message(u8"Ошибка в данных");
             return;
         }
-        Cube* cub3 = new Cube();
+
+        if (add_cube_dlg->geob != NULL)
+        {
+            int ns = add_cube_dlg->geob->GetNside();
+            if (ns != nSide)
+            {
+                geob_win->ClearFacets();
+                add_cube_dlg->geob->SetNside(nSide);
+                geob_win->UpdateFacets();
+            }
+        }
+
+        if (add_cube_dlg->geob == NULL)
+        {
+            if (nSide < 3) nSide = 3;
+            if (add_cube_dlg->geom_type == 1)
+                cub3 = new Cube();
+            else if (add_cube_dlg->geom_type == 2)
+                cub3 = new Cyl(nSide);
+
+            geob_win->Add(cub3);
+            beatIni->AddGeOb(cub3);
+            bNew = true;
+        }
+        else cub3 = add_cube_dlg->geob;
+
         cub3->Scale(xSc, ySc, zSc);
         cub3->Translate(x, y, z);
-        geob_win->Add(cub3);
-        FillListBox();
-
-        beatIni->AddGeOb(cub3);
+        if(bNew) FillListBox();
     }
     add_cube_dlg->hide();
 }
@@ -387,15 +420,17 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
         //fl_message(u8"Куб");
         if (add_cube_dlg == NULL)
             add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+        add_cube_dlg->Init(NULL, 1);
         add_cube_dlg->show();
     }
-    if (m == 1)
-    {       
-        if (pass_window == NULL)
-            pass_window = new Pass_Window(pass_window_done_cb);
-        pass_window->show();
+    else if (m == 1)
+    {   // цилиндр
+        if (add_cube_dlg == NULL)
+            add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+        add_cube_dlg->Init(NULL, 2);
+        add_cube_dlg->show();
     }
-    if (m == 2)
+    else if (m == 2)
     {
         fl_message(u8"Лин");
     }
@@ -808,7 +843,7 @@ int main(int argc, char **argv)
 
   form->show();
 
-  // создать Геометрические объекты
+  /*// создать Геометрические объекты
   Cube * cub1 = new Cube();
   cub1->Translate(1.0f, 0.0f, 0.0f);
   cub1->bNormal = true;
@@ -849,7 +884,7 @@ int main(int argc, char **argv)
   v2.Copy(5, 5, 1);
   ln1->AddLine(v1, v2);
   ln1->SetColor(255, 192, 0);
-  geob_win->Add(ln1);
+  geob_win->Add(ln1);*/
 
   // заполнить listbox с объектами
   FillListBox();
