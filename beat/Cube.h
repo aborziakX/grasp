@@ -18,7 +18,7 @@ public:
   */
   Cube()
     : GeOb(){
-    geom_type=1;
+    geom_type = geom_type_enum::GO_BOX;
     nSide = 4;
     Init();
   };

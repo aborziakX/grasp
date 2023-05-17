@@ -1,5 +1,22 @@
 ﻿#include "beat_ini.h"
 
+#ifndef _WINDOWS
+
+#ifndef errno_t
+#define errno_t int
+#endif
+
+errno_t strcpy_s(char* dst, size_t size, const char* src)
+{
+	if (!dst || !src) return EINVAL;
+	for (; size > 0; --size)
+	{
+		if (!(*dst++ = *src++)) return 0;
+	}
+	return ERANGE;
+}
+#endif
+
 namespace Grasp {
   BeatIni::BeatIni(GeObWindow* gw)
   {
@@ -680,20 +697,20 @@ namespace Grasp {
 	  double x_0, y_0, z_0, dx, dy, dz;
 	  geob->GetShift(x_0, y_0, z_0);
 	  geob->GetScale(dx, dy, dz);
-	  int geom_type = geob->GetGeomType();
+	  geom_type_enum geom_type = geob->GetGeomType();
 	  int nSide = geob->GetNside();
 
-	  if (geom_type == GO_SPHERE)
+	  if (geom_type == geom_type_enum::GO_SPHERE)
 	  {
 		  out << "sphere=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
-	  else if (geom_type == GO_BOX)
+	  else if (geom_type == geom_type_enum::GO_BOX)
 	  {
 		  out << "box=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
-	  else if (geom_type == GO_CYLINDER)
+	  else if (geom_type == geom_type_enum::GO_CYLINDER)
 	  {
 		  out << "cylinder=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << nSide;
@@ -703,7 +720,7 @@ namespace Grasp {
 		  out << "poly=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << mol->fname << "," << mol->composit;
 	  }*/
-	  else if (geom_type == GO_DEFAULT)
+	  else if (geom_type == geom_type_enum::GO_DEFAULT)
 		  out << "default=" << utf8_to_wstring(mol->composit);
 	  else return;
 

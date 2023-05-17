@@ -18,7 +18,7 @@ public:
   */
     Lines()
     : GeOb(){
-    geom_type = 5;
+    geom_type = geom_type_enum::GO_LINES;
     bWire = true;
     Init();
   };

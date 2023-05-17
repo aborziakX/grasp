@@ -18,7 +18,7 @@ public:
   */
   Cyl(int _steps = 8)
     : GeOb(){
-    geom_type = 2;
+    geom_type = geom_type_enum::GO_CYLINDER;
     nSide = _steps;
     Init();
   };

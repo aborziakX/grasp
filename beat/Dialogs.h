@@ -38,9 +38,9 @@ class AddCubeDialog : public Fl_Window
 {
     public:
         AddCubeDialog(Fl_Callback * cb);
-        void Init(GeOb* _mol, int _geom_type); /** инициализация */
+        void Init(GeOb* _mol, geom_type_enum _geom_type); /** инициализация */
         bool GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int& nSide);
-        int geom_type = 1;
+        geom_type_enum geom_type = geom_type_enum::GO_BOX;
         GeOb* geob = NULL;
 
     private:

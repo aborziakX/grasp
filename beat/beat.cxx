@@ -127,7 +127,7 @@ bool IsSelected()
 }
 
 // выбор файла
-string file_open_dialog(const char * sTitle, const char * sFilter)
+string file_open_dialog(const char * sTitle, const char * sFilter, bool bNew = false)
 {
     if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
     {
@@ -141,7 +141,9 @@ string file_open_dialog(const char * sTitle, const char * sFilter)
     // создать "нативный быбор файла" диалог
     Fl_Native_File_Chooser native;
     native.title(sTitle);
-    native.type(Fl_Native_File_Chooser::BROWSE_FILE);
+    int t = bNew ? Fl_Native_File_Chooser::BROWSE_SAVE_FILE : // need this if file doesn't exist yet
+        Fl_Native_File_Chooser::BROWSE_FILE;
+    native.type(t);
     native.filter(sFilter);
     native.directory(cCurrentPath);
     //native.preset_file(G_filename->value());
@@ -213,7 +215,7 @@ void file_create_cb(Fl_Widget*, void*)
 void file_save_as_cb(Fl_Widget*, void*)
 {
     if (!IsReady()) return;
-    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER);
+    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER, true);
     if (sIniFile.empty()) return;
 
     //fl_message(sIniFile.c_str());
@@ -224,7 +226,7 @@ void file_save_as_cb(Fl_Widget*, void*)
 void file_gener_cb(Fl_Widget*, void*)
 {
     if (!IsReady()) return;
-    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_INI_FILTER);
+    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_INI_FILTER, true);
     if (sIniFile.empty()) return;
 
     //fl_message(file_gener_cb.c_str());
@@ -238,7 +240,7 @@ void edit_cb(Fl_Widget*, void*)
     //fl_message(u8"edit_cb");
     if (!IsSelected()) return;
 
-    int geom_type = geobCurrent->GetGeomType();
+    geom_type_enum geom_type = geobCurrent->GetGeomType();
     if (add_cube_dlg == NULL)
         add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
     add_cube_dlg->Init(geobCurrent, geom_type);
@@ -251,11 +253,24 @@ void features_done_cb(Fl_Widget* bt, void* ud)
     int m = *(int*)ud;
     if (m == 1)
     { //Ok
+        int id = geobCurrent->GetIndex();
+        TMolecule* mol = beatIni->FindMolecule(id);
+        TParam* par = mol->FeatureByName("color");
+        string old = "";
+        if (par != NULL) old = par->pcurr;
+
         bool bSuc = phys_dlg->GetPos();
         if (!bSuc)
         {
             fl_message(u8"Ошибка в данных");
             return;
+        }
+        if (par != NULL && par->pcurr != old)
+        {
+            unsigned char _red, _green, _blue;
+            int clrInd = atoi(par->pcurr.c_str());
+            Facet3::GetColorByIndex(clrInd, _red, _green, _blue);
+            geobCurrent->SetColor(_red, _green, _blue);
         }
     }
     phys_dlg->hide();
@@ -393,9 +408,9 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
         if (add_cube_dlg->geob == NULL)
         {
             if (nSide < 3) nSide = 3;
-            if (add_cube_dlg->geom_type == 1)
+            if (add_cube_dlg->geom_type == geom_type_enum::GO_BOX)
                 cub3 = new Cube();
-            else if (add_cube_dlg->geom_type == 2)
+            else if (add_cube_dlg->geom_type == geom_type_enum::GO_CYLINDER)
                 cub3 = new Cyl(nSide);
 
             geob_win->Add(cub3);
@@ -420,14 +435,14 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
         //fl_message(u8"Куб");
         if (add_cube_dlg == NULL)
             add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
-        add_cube_dlg->Init(NULL, 1);
+        add_cube_dlg->Init(NULL, geom_type_enum::GO_BOX);
         add_cube_dlg->show();
     }
     else if (m == 1)
     {   // цилиндр
         if (add_cube_dlg == NULL)
             add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
-        add_cube_dlg->Init(NULL, 2);
+        add_cube_dlg->Init(NULL, geom_type_enum::GO_CYLINDER);
         add_cube_dlg->show();
     }
     else if (m == 2)
@@ -818,11 +833,15 @@ void FillListBox()
     pack->end();
     pack->redraw();
     scroll->redraw();
+    geobCurrent = NULL;
+    lbBtnCurrent = NULL;
 }
 
 int main(int argc, char **argv) 
 {
+#ifdef _WINDOWS
   SetConsoleOutputCP(CP_UTF8);
+#endif
   Fl::use_high_res_GL(1);
   Fl::set_color(FL_FREE_COLOR, 255, 255, 0, 75);
   bool bDouble = false;

@@ -13,8 +13,10 @@
 #include <iostream>
 #include <chrono>
 #include <cstring>
+#include <errno.h>
 
 #include "GeObWindow.h"
+
 #ifndef _WINDOWS
 #define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
 #endif
@@ -83,11 +85,6 @@ struct TDialog
 };
 
 /**
-типы геометрии
-*/
-enum geom_type_enum { GO_SPHERE = 0, GO_BOX, GO_CYLINDER, GO_TETRA, GO_LINES, GO_GADGET, GO_DEFAULT = 1000 };
-
-/**
 @struct   TMolecule
 @brief   физичиские свойства геом.объекта
 */
@@ -104,12 +101,12 @@ struct TMolecule
 
 	static const char* PtypeToString(geom_type_enum geom_type)
 	{
-		if (geom_type == GO_SPHERE) return "sphere";
-		else if (geom_type == GO_BOX) return "box";
-		else if (geom_type == GO_CYLINDER) return "cylinder";
-		else if (geom_type == GO_TETRA) return "tetra";
-		else if (geom_type == GO_LINES) return "lines";
-		else if (geom_type == GO_GADGET) return "gadget";
+		if (geom_type == geom_type_enum::GO_SPHERE) return "sphere";
+		else if (geom_type == geom_type_enum::GO_BOX) return "box";
+		else if (geom_type == geom_type_enum::GO_CYLINDER) return "cylinder";
+		else if (geom_type == geom_type_enum::GO_TETRA) return "tetra";
+		else if (geom_type == geom_type_enum::GO_LINES) return "lines";
+		else if (geom_type == geom_type_enum::GO_GADGET) return "gadget";
 		return "default";
 	}
 
@@ -124,6 +121,15 @@ struct TMolecule
 	~TMolecule()
 	{
 		Reset();
+	}
+
+	TParam* FeatureByName(const char * pname)
+	{
+		for (int k = 0; k < lstFeature.size(); k++)
+		{
+			if (lstFeature[k]->pname == pname) return lstFeature[k];
+		}
+		return NULL;
 	}
 };
 

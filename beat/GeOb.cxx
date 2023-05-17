@@ -106,6 +106,65 @@ void Facet3::Draw(Vec3& vecCamDir, bool wire, bool norm)
         glEnd();
     }
 }
+
+// получить каналы цвета по индексу
+void Facet3::GetColorByIndex(int ind, unsigned char& _red, unsigned char& _green, unsigned char& _blue) {
+    if (ind == 0) { //red
+        _red = 255;
+        _green = 0;
+        _blue = 0;
+    }
+    else if (ind == 1) { //orange
+        _red = 255;
+        _green = 190;
+        _blue = 0;
+    }
+    else if (ind == 2) { //yellow
+        _red = 255;
+        _green = 255;
+        _blue = 0;
+    }
+    else if (ind == 3) { //green
+        _red = 0;
+        _green = 255;
+        _blue = 0;
+    }
+    else if (ind == 4) { //light blue
+        _red = 0;
+        _green = 0;
+        _blue = 255;
+    }
+    else if (ind == 5) { //blue
+        _red = 0;
+        _green = 0;
+        _blue = 127;
+    }
+    else if (ind == 6) { //violet
+        _red = 255;
+        _green = 0;
+        _blue = 255;
+    }
+    else if (ind == 7) { //white
+        _red = 255;
+        _green = 255;
+        _blue = 255;
+    }
+    else if (ind == 8) { //light gray
+        _red = 190;
+        _green = 190;
+        _blue = 190;
+    }
+    else if (ind == 9) { //gray
+        _red = 127;
+        _green = 127;
+        _blue = 127;
+    }
+    else { //black
+        _red = 0;
+        _green = 0;
+        _blue = 0;
+    }
+}
 //== end Facet3
 
 int GeOb::counter = 0;

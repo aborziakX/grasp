@@ -84,6 +84,10 @@ public:
     green = _green;
     blue = _blue;
   }
+  /**
+  получить каналы цвета по индексу
+  */
+  static void GetColorByIndex(int ind, unsigned char& _red, unsigned char& _green, unsigned char& _blue);
 
   /**
   вычислить центр и нормаль
@@ -161,6 +165,12 @@ private:
   void CalcNormal();
 };
 
+/**
+типы геометрии
+*/
+enum class geom_type_enum { GO_SPHERE = 0, GO_BOX, GO_CYLINDER, GO_TETRA, GO_LINES, GO_GADGET, GO_DEFAULT = 1000 };
+
+
 /// <summary>
 /// Геометрический объект (Geometrical object - GeOb) - список граней
 /// </summary>
@@ -187,7 +197,7 @@ public:
   /**
   вернуть тип
   */
-  int GetGeomType() {
+  geom_type_enum GetGeomType() {
       return geom_type;
   }
 
@@ -327,7 +337,7 @@ public:
 protected:
   std::vector<Facet3 *> vecFacet; /** список граней */
   std::string name; /** название */
-  int geom_type=1; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
+  geom_type_enum geom_type = geom_type_enum::GO_SPHERE; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
   int nSide; /** число боковых граней */
 
 private:

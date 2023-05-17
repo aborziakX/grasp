@@ -50,7 +50,7 @@ bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double&
     return rc;
 }
 // инициализация
-void AddCubeDialog::Init(GeOb* _geob, int _geom_type)
+void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
 {
     geob = _geob;
     /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
@@ -68,8 +68,8 @@ void AddCubeDialog::Init(GeOb* _geob, int _geom_type)
         inScZ.value("1.0");
         inSide.value("8");
 
-        if (geom_type == 1) this->copy_label(u8"Добавить куб");
-        else if (geom_type == 2) this->copy_label(u8"Добавить цилиндр");
+        if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Добавить куб");
+        else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Добавить цилиндр");
     }
     else
     {
@@ -96,10 +96,10 @@ void AddCubeDialog::Init(GeOb* _geob, int _geom_type)
         sprintf_s(buf, "%d", geob->GetNside());
         inSide.value(buf);
 
-        if (geom_type == 1) this->copy_label(u8"Изменить куб");
-        else if (geom_type == 2) this->copy_label(u8"Изменить цилиндр");
+        if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Изменить куб");
+        else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Изменить цилиндр");
     }
-    if (geom_type == 1) inSide.clear_visible();
+    if (geom_type == geom_type_enum::GO_BOX) inSide.clear_visible();
     else inSide.set_visible();
 }
 //==
