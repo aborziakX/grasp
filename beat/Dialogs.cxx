@@ -70,10 +70,21 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
 
         if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Добавить куб");
         else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Добавить цилиндр");
+        else if (geom_type == geom_type_enum::GO_LINES) this->copy_label(u8"Добавить линию");
     }
     else
     {
+        Facet3* f = NULL;
         geob->GetShift(x, y, z);
+        if (geom_type == geom_type_enum::GO_LINES)
+        {
+            f = geob->GetFacet(0);
+            Vec3 * v1 = f->GetPoint(0);
+            x = v1->GetX();
+            y = v1->GetY();
+            z = v1->GetZ();
+        }
+
         sprintf_s(buf, "%.3f", x);
         inX.value(buf);
 
@@ -84,6 +95,15 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         inZ.value(buf);
 
         geob->GetScale(x, y, z);
+        if (geom_type == geom_type_enum::GO_LINES)
+        {
+            f = geob->GetFacet(0);
+            Vec3* v1 = f->GetPoint(1);
+            x = v1->GetX();
+            y = v1->GetY();
+            z = v1->GetZ();
+        }
+
         sprintf_s(buf, "%.3f", x);
         inScX.value(buf);
 
@@ -98,8 +118,12 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
 
         if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Изменить куб");
         else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Изменить цилиндр");
+        else if (geom_type == geom_type_enum::GO_LINES) this->copy_label(u8"Изменить линию");
     }
-    if (geom_type == geom_type_enum::GO_BOX) inSide.clear_visible();
+    if (geom_type == geom_type_enum::GO_BOX || geom_type == geom_type_enum::GO_LINES)
+    {
+        inSide.clear_visible();
+    }
     else inSide.set_visible();
 }
 //==

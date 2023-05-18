@@ -92,13 +92,22 @@ namespace Grasp {
 		  TMolecule* mol = new TMolecule();
 		  mol->geob_id = obj->GetIndex();
 		  char buf[33];
-		  sprintf_s(buf, "phy_%d", mol->geob_id);
+		  sprintf_s(buf, "gid_%d", mol->geob_id);
 		  mol->objname = buf;
 		  InitFeatures(mol);
 		  for (int i = 0; i < (int)mol->lstFeature.size(); i++)
 		  {
 			  if ((int)lst.size() > i + geom_must)
+			  {
 				  SetFeature(mol, i, *lst[i + geom_must]);
+				  if (mol->lstFeature[i]->pname == "color")
+				  {	// задать цвет
+					  unsigned char _red, _green, _blue;
+					  int clrInd = atoi(mol->lstFeature[i]->pcurr.c_str());
+					  Facet3::GetColorByIndex(clrInd, _red, _green, _blue);
+					  obj->SetColor(_red, _green, _blue);
+				  }
+			  }
 		  }
 		  TMoleculeList.push_back(mol);
 	  }

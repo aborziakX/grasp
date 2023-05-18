@@ -247,6 +247,11 @@ void edit_cb(Fl_Widget*, void*)
     add_cube_dlg->show();
 }
 
+// задать цвет геом.объекту из физических свойств
+void SetColorFromPhys()
+{
+}
+
 // Геометрия/Свойства 
 void features_done_cb(Fl_Widget* bt, void* ud)
 {
@@ -412,15 +417,54 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
                 cub3 = new Cube();
             else if (add_cube_dlg->geom_type == geom_type_enum::GO_CYLINDER)
                 cub3 = new Cyl(nSide);
+            else if (add_cube_dlg->geom_type == geom_type_enum::GO_LINES)
+            {
+                Lines * ln = new Lines();
+                Vec3 v1, v2;
+                v1.Copy(x, y, z);
+                v2.Copy(xSc, ySc, zSc);
+                ln->AddLine(v1, v2);
+                cub3 = ln;
+            }
 
             geob_win->Add(cub3);
             beatIni->AddGeOb(cub3);
+            // задать цвет по умолчанию
+            TMolecule* mol = beatIni->FindMolecule(cub3->GetIndex());
+            TParam* par = mol->FeatureByName("color");
+            if (par != NULL)
+            {
+                //TODO? цвет = geom_type
+                unsigned char _red, _green, _blue;
+                int clrInd = atoi(par->pcurr.c_str());
+                Facet3::GetColorByIndex(clrInd, _red, _green, _blue);
+                cub3->SetColor(_red, _green, _blue);
+            }
             bNew = true;
         }
-        else cub3 = add_cube_dlg->geob;
+        else
+        {
+            cub3 = add_cube_dlg->geob;
+            if (add_cube_dlg->geom_type == geom_type_enum::GO_LINES)
+            {
+                Facet3* f = cub3->GetFacet(0);
+                Vec3* v1 = f->GetPoint(0);
+                v1->SetX(x);
+                v1->SetY(y);
+                v1->SetZ(z);
 
-        cub3->Scale(xSc, ySc, zSc);
-        cub3->Translate(x, y, z);
+                v1 = f->GetPoint(1);
+                v1->SetX(xSc);
+                v1->SetY(ySc);
+                v1->SetZ(zSc);
+            }
+        }
+
+        if (add_cube_dlg->geom_type != geom_type_enum::GO_LINES)
+        {
+            cub3->Scale(xSc, ySc, zSc);
+            cub3->Translate(x, y, z);
+        }
         if(bNew) FillListBox();
     }
     add_cube_dlg->hide();
@@ -446,8 +490,11 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
         add_cube_dlg->show();
     }
     else if (m == 2)
-    {
-        fl_message(u8"Лин");
+    { // линия
+        if (add_cube_dlg == NULL)
+            add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+        add_cube_dlg->Init(NULL, geom_type_enum::GO_LINES);
+        add_cube_dlg->show();
     }
 }
 

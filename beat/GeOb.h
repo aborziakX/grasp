@@ -338,7 +338,7 @@ protected:
   std::vector<Facet3 *> vecFacet; /** список граней */
   std::string name; /** название */
   geom_type_enum geom_type = geom_type_enum::GO_SPHERE; /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
-  int nSide; /** число боковых граней */
+  int nSide = 3; /** число боковых граней */
 
 private:
   double dScaleX = 1.0, dScaleY = 1.0, dScaleZ = 1.0; /** масштабирование */
