@@ -259,7 +259,7 @@ public:
   /**
   создать GeOb и добавить в список (по умолчанию)
   */
-  GeOb * CreateObj(int typ, double x_0, double y_0, double z_0, double dx, double dy, double dz, 
+  GeOb * CreateObj(geom_type_enum typ, double x_0, double y_0, double z_0, double dx, double dy, double dz,
       int nSide, bool bAdd = true);
 
   /**

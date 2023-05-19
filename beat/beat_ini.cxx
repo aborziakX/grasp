@@ -50,7 +50,8 @@ namespace Grasp {
 
 	  vector<string*> lst;
 	  GeOb* obj = NULL;
-	  int npos = 0, geom_must = 7, j, geom_type = 0;
+	  int npos = 0, geom_must = 7, j;
+	  geom_type_enum geom_type = geom_type_enum::GO_DEFAULT;
 
 	  // восстанавливаем кубы etc
 	  for (j = 0; j < lstKey.size(); j++)
@@ -64,12 +65,17 @@ namespace Grasp {
 			  if (val == "")
 				  continue;
 			  geom_must = 7;
-			  geom_type = 1;
+			  geom_type = geom_type_enum::GO_BOX;
 		  }
 		  else if (key == "cylinder")
 		  {
 			  geom_must = 7;
-			  geom_type = 2;
+			  geom_type = geom_type_enum::GO_CYLINDER;
+		  }
+		  else if (key == "line")
+		  {
+			  geom_must = 7;
+			  geom_type = geom_type_enum::GO_LINES;
 		  }
 		  else continue;
 
@@ -722,6 +728,20 @@ namespace Grasp {
 	  else if (geom_type == geom_type_enum::GO_CYLINDER)
 	  {
 		  out << "cylinder=" << x_0 << "," << y_0 << "," << z_0 << ","
+			  << dx << "," << dy << "," << dz << "," << nSide;
+	  }
+	  else if (geom_type == geom_type_enum::GO_LINES)
+	  {
+		  Facet3* f = geob->GetFacet(0);
+		  Vec3* v1 = f->GetPoint(0);
+		  x_0 = v1->GetX();
+		  y_0 = v1->GetY();
+		  z_0 = v1->GetZ();
+		  v1 = f->GetPoint(1);
+		  dx = v1->GetX();
+		  dy = v1->GetY();
+		  dz = v1->GetZ();
+		  out << "line=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
 	  /*else if (geom_type == GO_POLY)

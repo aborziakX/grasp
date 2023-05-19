@@ -208,7 +208,19 @@ void file_save_cb(Fl_Widget*, void*)
 // Создать Проект
 void file_create_cb(Fl_Widget*, void*)
 {
-    fl_message(u8"file_create_cb");
+    string sIniFile = file_open_dialog(MES_SELECT_TEMPL, MES_BTT_FILTER);
+    if (sIniFile.empty()) return;
+
+    if (beatIni == NULL)
+    {
+        beatIni = new BeatIni(geob_win);
+        beatIni->ErrorLog(L"Я started2!");
+    }
+    int n = beatIni->LoadIni(sIniFile.c_str());
+    cout << "\nn=" << n;
+    PrepareBeatDialog();
+    FillListBox();
+    beatIni->filename = ""; // empty
 }
 
 // Сохранить как Проект
@@ -245,11 +257,6 @@ void edit_cb(Fl_Widget*, void*)
         add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
     add_cube_dlg->Init(geobCurrent, geom_type);
     add_cube_dlg->show();
-}
-
-// задать цвет геом.объекту из физических свойств
-void SetColorFromPhys()
-{
 }
 
 // Геометрия/Свойства 
@@ -328,6 +335,7 @@ void listbox_cb(Fl_Widget* bt, void* ud)
     //fl_message(buf);
 }
 
+// диалог завершен
 void bt_dlg_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
@@ -378,11 +386,13 @@ void delete_cb(Fl_Widget*, void* ud)
     }
 }
 
+// demo
 void pass_window_done_cb(Fl_Widget* bt, void* ud)
 {
     pass_window->hide();
 }
 
+// Добавить завершено
 void add_cube_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
@@ -470,6 +480,7 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
     add_cube_dlg->hide();
 }
 
+// Добавить
 void add_cube_cb(Fl_Widget* bt, void* ud)
 {
     if (!IsReady()) return;
@@ -496,6 +507,16 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
         add_cube_dlg->Init(NULL, geom_type_enum::GO_LINES);
         add_cube_dlg->show();
     }
+}
+
+// Ребра-Сплошной
+void wire_cb(Fl_Widget* bt, void* ud)
+{
+    if (!IsReady()) return;
+    if (!IsSelected()) return;
+
+    bool bw = geobCurrent->bWire;
+    geobCurrent->bWire = !bw;
 }
 
 // камера XYZ завершена
@@ -775,6 +796,7 @@ void MakeForm(const char *name)
   menubar->add(u8"Геометрия/Изменить", FL_COMMAND + 'e', edit_cb);
   menubar->add(u8"Геометрия/Удалить", FL_COMMAND + 'd', delete_cb);
   menubar->add(u8"Геометрия/Свойства", FL_COMMAND + 'h', features_cb);
+  menubar->add(u8"Геометрия/Ребра-Сплошной", FL_COMMAND + 'w', wire_cb);
 
   menubar->add(u8"Помощь", FL_COMMAND + 'h', help_cb);
 

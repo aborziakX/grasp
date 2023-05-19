@@ -47,35 +47,41 @@ void GeObWindow::Add(GeOb* cube)
 }
 
 // создать GeOb и добавить в список (по умолчанию)
-GeOb* GeObWindow::CreateObj(int geom_type, double x_0, double y_0, double z_0, double dx, double dy, double dz, 
+GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, double z_0, double dx, double dy, double dz,
     int nSide, bool bAdd)
 {
     GeOb* obj = NULL;
-    if( geom_type == 0 )
+    if( geom_type == geom_type_enum::GO_SPHERE)
     {  // sphere
     }
-    else if (geom_type == 1)
+    else if (geom_type == geom_type_enum::GO_BOX)
     {  // box
         obj = new Cube();
         obj->Translate(x_0, y_0, z_0);
         obj->Scale(dx, dy, dz);
     }
-    else if (geom_type == 2)
+    else if (geom_type == geom_type_enum::GO_CYLINDER)
     {  // cylinder
         obj = new Cyl(nSide);
         obj->Translate(x_0, y_0, z_0);
         obj->Scale(dx, dy, dz);
     }
-    else if (geom_type == 3)
+    else if (geom_type == geom_type_enum::GO_TETRA)
     {  // tetra
     }
-    else if (geom_type == 4)
-    {  // cylinder
-    }
-    else if (geom_type == 5)
+    else if (geom_type == geom_type_enum::GO_LINES)
     {  // lines
+        Lines * ln = new Lines();
+        Vec3 v1, v2;
+        v1.Copy(x_0, y_0, z_0);
+        v2.Copy(dx, dy, dz);
+        ln->AddLine(v1, v2);
+        obj = ln;
     }
-    else if (geom_type == 1000)
+    else if (geom_type == geom_type_enum::GO_GADGET)
+    {  // gadget
+    }
+    else if (geom_type == geom_type_enum::GO_DEFAULT)
     {  // default
     }
 
