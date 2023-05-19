@@ -2,6 +2,8 @@
 #include "Cube.h"
 #include "Cyl.h"
 #include "Lines.h"
+#include "Cone.h"
+#include "Sphere.h"
 
 namespace Grasp {
 
@@ -53,6 +55,9 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
     GeOb* obj = NULL;
     if( geom_type == geom_type_enum::GO_SPHERE)
     {  // sphere
+        obj = new Sphere();
+        obj->Translate(x_0, y_0, z_0);
+        obj->Scale(dx, dy, dz);
     }
     else if (geom_type == geom_type_enum::GO_BOX)
     {  // box
@@ -68,6 +73,9 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
     }
     else if (geom_type == geom_type_enum::GO_TETRA)
     {  // tetra
+        obj = new Cone(nSide);
+        obj->Translate(x_0, y_0, z_0);
+        obj->Scale(dx, dy, dz);
     }
     else if (geom_type == geom_type_enum::GO_LINES)
     {  // lines

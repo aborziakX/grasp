@@ -71,6 +71,8 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Добавить куб");
         else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Добавить цилиндр");
         else if (geom_type == geom_type_enum::GO_LINES) this->copy_label(u8"Добавить линию");
+        else if (geom_type == geom_type_enum::GO_TETRA) this->copy_label(u8"Добавить конус");
+        else if (geom_type == geom_type_enum::GO_SPHERE) this->copy_label(u8"Добавить сферу");
     }
     else
     {
@@ -119,7 +121,10 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Изменить куб");
         else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Изменить цилиндр");
         else if (geom_type == geom_type_enum::GO_LINES) this->copy_label(u8"Изменить линию");
+        else if (geom_type == geom_type_enum::GO_TETRA) this->copy_label(u8"Изменить конус");
+        else if (geom_type == geom_type_enum::GO_SPHERE) this->copy_label(u8"Изменить сферу");
     }
+
     if (geom_type == geom_type_enum::GO_BOX || geom_type == geom_type_enum::GO_LINES)
     {
         inSide.clear_visible();

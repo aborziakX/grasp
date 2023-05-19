@@ -72,6 +72,16 @@ namespace Grasp {
 			  geom_must = 7;
 			  geom_type = geom_type_enum::GO_CYLINDER;
 		  }
+		  else if (key == "cone")
+		  {
+			  geom_must = 7;
+			  geom_type = geom_type_enum::GO_TETRA;
+		  }
+		  else if (key == "sphere")
+		  {
+			  geom_must = 7;
+			  geom_type = geom_type_enum::GO_SPHERE;
+		  }
 		  else if (key == "line")
 		  {
 			  geom_must = 7;
@@ -728,6 +738,11 @@ namespace Grasp {
 	  else if (geom_type == geom_type_enum::GO_CYLINDER)
 	  {
 		  out << "cylinder=" << x_0 << "," << y_0 << "," << z_0 << ","
+			  << dx << "," << dy << "," << dz << "," << nSide;
+	  }
+	  else if (geom_type == geom_type_enum::GO_TETRA)
+	  {
+		  out << "cone=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
 	  else if (geom_type == geom_type_enum::GO_LINES)

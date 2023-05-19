@@ -36,6 +36,8 @@
 #include "Cube.h"
 #include "Cyl.h"
 #include "Lines.h"
+#include "Cone.h"
+#include "Sphere.h"
 #include "Dialogs.h"
 #include "beat_ini.h"
 
@@ -392,6 +394,12 @@ void pass_window_done_cb(Fl_Widget* bt, void* ud)
     pass_window->hide();
 }
 
+const int m_0 = 0; // куб
+const int m_1 = 1; // цил.
+const int m_2 = 2; // лин.
+const int m_3 = 3; // Конус
+const int m_4 = 4; // Сфера
+
 // Добавить завершено
 void add_cube_done_cb(Fl_Widget* bt, void* ud)
 {
@@ -436,6 +444,10 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
                 ln->AddLine(v1, v2);
                 cub3 = ln;
             }
+            else if (add_cube_dlg->geom_type == geom_type_enum::GO_TETRA)
+                cub3 = new Cone(nSide);
+            else if (add_cube_dlg->geom_type == geom_type_enum::GO_SPHERE)
+                cub3 = new Sphere(nSide);
 
             geob_win->Add(cub3);
             beatIni->AddGeOb(cub3);
@@ -485,26 +497,39 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
 {
     if (!IsReady()) return;
     int m = *(int*)ud;
-    if (m == 0)
-    {
-        //fl_message(u8"Куб");
+    if (m == m_0)
+    {   // Куб
         if (add_cube_dlg == NULL)
             add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
         add_cube_dlg->Init(NULL, geom_type_enum::GO_BOX);
         add_cube_dlg->show();
     }
-    else if (m == 1)
+    else if (m == m_1)
     {   // цилиндр
         if (add_cube_dlg == NULL)
             add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
         add_cube_dlg->Init(NULL, geom_type_enum::GO_CYLINDER);
         add_cube_dlg->show();
     }
-    else if (m == 2)
+    else if (m == m_2)
     { // линия
         if (add_cube_dlg == NULL)
             add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
         add_cube_dlg->Init(NULL, geom_type_enum::GO_LINES);
+        add_cube_dlg->show();
+    }
+    else if (m == m_3)
+    {   // Конус
+        if (add_cube_dlg == NULL)
+            add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+        add_cube_dlg->Init(NULL, geom_type_enum::GO_TETRA);
+        add_cube_dlg->show();
+    }
+    else if (m == m_4)
+    {   // Сфера
+        if (add_cube_dlg == NULL)
+            add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+        add_cube_dlg->Init(NULL, geom_type_enum::GO_SPHERE);
         add_cube_dlg->show();
     }
 }
@@ -750,10 +775,6 @@ int gl_w = 400; // ширина GL окна
 int gl_h = 400; // высота GL окна
 //int rt_grp_w = 5; // область для будущего
 
-int m1 = 0; // куб
-int m2 = 1; // цил.
-int m3 = 2; // лин.
-
 // создать главное окно и виджеты
 void MakeForm(const char *name) 
 {
@@ -790,9 +811,11 @@ void MakeForm(const char *name)
   menubar->add(u8"Камера/Камера XYZ", FL_COMMAND + 'x', camera_xyz_cb);
   menubar->add(u8"Камера/Камера сферично", FL_COMMAND + 'r', camera_sph_cb);
 
-  menubar->add(u8"Геометрия/Добавить/Куб", FL_COMMAND + 'u', add_cube_cb, (void*)&m1);
-  menubar->add(u8"Геометрия/Добавить/Цилиндр", FL_COMMAND + 'y', add_cube_cb, (void*)&m2);
-  menubar->add(u8"Геометрия/Добавить/Линии", FL_COMMAND + 'l', add_cube_cb, (void*)&m3);
+  menubar->add(u8"Геометрия/Добавить/Куб", FL_COMMAND + 'u', add_cube_cb, (void*)&m_0);
+  menubar->add(u8"Геометрия/Добавить/Цилиндр", FL_COMMAND + 'y', add_cube_cb, (void*)&m_1);
+  menubar->add(u8"Геометрия/Добавить/Конус", FL_COMMAND + 'n', add_cube_cb, (void*)&m_3);
+  menubar->add(u8"Геометрия/Добавить/Сфера", FL_COMMAND + 'p', add_cube_cb, (void*)&m_4);
+  menubar->add(u8"Геометрия/Добавить/Линии", FL_COMMAND + 'l', add_cube_cb, (void*)&m_2);
   menubar->add(u8"Геометрия/Изменить", FL_COMMAND + 'e', edit_cb);
   menubar->add(u8"Геометрия/Удалить", FL_COMMAND + 'd', delete_cb);
   menubar->add(u8"Геометрия/Свойства", FL_COMMAND + 'h', features_cb);
