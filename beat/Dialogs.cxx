@@ -66,13 +66,14 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         inScX.value("1.0");
         inScY.value("1.0");
         inScZ.value("1.0");
-        inSide.value("8");
+        inSide.value(geom_type == geom_type_enum::GO_GADGET ? "3" : "8");
 
         if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Добавить куб");
         else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Добавить цилиндр");
         else if (geom_type == geom_type_enum::GO_LINES) this->copy_label(u8"Добавить линию");
         else if (geom_type == geom_type_enum::GO_TETRA) this->copy_label(u8"Добавить конус");
         else if (geom_type == geom_type_enum::GO_SPHERE) this->copy_label(u8"Добавить сферу");
+        else if (geom_type == geom_type_enum::GO_GADGET) this->copy_label(u8"Добавить точку учета");
     }
     else
     {
@@ -123,13 +124,28 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         else if (geom_type == geom_type_enum::GO_LINES) this->copy_label(u8"Изменить линию");
         else if (geom_type == geom_type_enum::GO_TETRA) this->copy_label(u8"Изменить конус");
         else if (geom_type == geom_type_enum::GO_SPHERE) this->copy_label(u8"Изменить сферу");
+        else if (geom_type == geom_type_enum::GO_GADGET) this->copy_label(u8"Изменить точку учета");
     }
 
-    if (geom_type == geom_type_enum::GO_BOX || geom_type == geom_type_enum::GO_LINES)
+    if (geom_type == geom_type_enum::GO_BOX || geom_type == geom_type_enum::GO_LINES
+        || geom_type == geom_type_enum::GO_GADGET)
     {
         inSide.clear_visible();
     }
     else inSide.set_visible();
+
+    if (geom_type == geom_type_enum::GO_GADGET)
+    {
+        inScX.clear_visible();
+        inScY.clear_visible();
+        inScZ.clear_visible();
+    }
+    else
+    {
+        inScX.set_visible();
+        inScY.set_visible();
+        inScZ.set_visible();
+    }
 }
 //==
 
@@ -362,15 +378,16 @@ void PhysPropDialog::Init(TMolecule* _mol)
         {
             TParam* par = mol->lstFeature[i];
             if (par->ptype != 3)
-            {
+            {   // edit box
                 sprintf_s(buf, "%s", par->pcurr.c_str());
                 field->value(buf);
                 field->copy_label(par->pcomment.c_str());
 
+                field->set_visible();
                 choice->clear_visible();
             }
             else
-            {
+            {   // combo box
                 choice->copy_label(par->pcomment.c_str());
                 int m = 0;
                 for (int k = 0; k < par->lstCombo.size(); k++)
@@ -386,6 +403,7 @@ void PhysPropDialog::Init(TMolecule* _mol)
                 }
 
                 field->clear_visible();
+                choice->set_visible();
             }
         }
         else

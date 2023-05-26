@@ -87,6 +87,11 @@ namespace Grasp {
 			  geom_must = 7;
 			  geom_type = geom_type_enum::GO_LINES;
 		  }
+		  else if (key == "gadget")
+		  {
+			  geom_must = 7;
+			  geom_type = geom_type_enum::GO_GADGET;
+		  }
 		  else continue;
 
 		  string qs = val;
@@ -578,7 +583,7 @@ namespace Grasp {
 	  TMolecule* mol = new TMolecule();
 	  mol->geob_id = cub3->GetIndex();
 	  char buf[33];
-	  sprintf_s(buf, "phy_%d", mol->geob_id);
+	  sprintf_s(buf, "gid_%d", mol->geob_id);
 	  mol->objname = buf;
 	  InitFeatures(mol);
 	  TMoleculeList.push_back(mol);
@@ -757,6 +762,11 @@ namespace Grasp {
 		  dy = v1->GetY();
 		  dz = v1->GetZ();
 		  out << "line=" << x_0 << "," << y_0 << "," << z_0 << ","
+			  << dx << "," << dy << "," << dz << "," << nSide;
+	  }
+	  else if (geom_type == geom_type_enum::GO_GADGET)
+	  {
+		  out << "gadget=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << nSide;
 	  }
 	  /*else if (geom_type == GO_POLY)

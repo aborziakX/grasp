@@ -4,6 +4,7 @@
 #include "Lines.h"
 #include "Cone.h"
 #include "Sphere.h"
+#include "Gadget.h"
 
 namespace Grasp {
 
@@ -56,26 +57,26 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
     if( geom_type == geom_type_enum::GO_SPHERE)
     {  // sphere
         obj = new Sphere();
-        obj->Translate(x_0, y_0, z_0);
         obj->Scale(dx, dy, dz);
+        obj->Translate(x_0, y_0, z_0);
     }
     else if (geom_type == geom_type_enum::GO_BOX)
     {  // box
         obj = new Cube();
-        obj->Translate(x_0, y_0, z_0);
         obj->Scale(dx, dy, dz);
+        obj->Translate(x_0, y_0, z_0);
     }
     else if (geom_type == geom_type_enum::GO_CYLINDER)
     {  // cylinder
         obj = new Cyl(nSide);
-        obj->Translate(x_0, y_0, z_0);
         obj->Scale(dx, dy, dz);
+        obj->Translate(x_0, y_0, z_0);
     }
     else if (geom_type == geom_type_enum::GO_TETRA)
     {  // tetra
         obj = new Cone(nSide);
-        obj->Translate(x_0, y_0, z_0);
         obj->Scale(dx, dy, dz);
+        obj->Translate(x_0, y_0, z_0);
     }
     else if (geom_type == geom_type_enum::GO_LINES)
     {  // lines
@@ -88,6 +89,9 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
     }
     else if (geom_type == geom_type_enum::GO_GADGET)
     {  // gadget
+        obj = new Gadget();
+        obj->Scale(dx, dy, dz);
+        obj->Translate(x_0, y_0, z_0);
     }
     else if (geom_type == geom_type_enum::GO_DEFAULT)
     {  // default
