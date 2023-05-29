@@ -50,7 +50,7 @@ namespace Grasp {
 
 	  vector<string*> lst;
 	  GeOb* obj = NULL;
-	  int npos = 0, geom_must = 7, j;
+	  int npos = 0, geom_must = 8, j;
 	  geom_type_enum geom_type = geom_type_enum::GO_DEFAULT;
 
 	  // восстанавливаем кубы etc
@@ -60,36 +60,36 @@ namespace Grasp {
 		  string val = *lstVal[j];
 
 		  if (key == "box")
-		  {   //box=0,0,0, 15,15,15, 4, 0,0,0, 10, 293,1000000, box1
-			  //x,y,z, dx,dy,dz, nSide, features (speed 3, mass, temp, color), name
+		  {   //box=0,0,0, 15,15,15, 4, 256, 0,0,0, 10, 293,1000000, box1
+			  //x,y,z, dx,dy,dz, nSide, clr, features (speed 3, mass, temp, color), name
 			  if (val == "")
 				  continue;
-			  geom_must = 7;
+			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_BOX;
 		  }
 		  else if (key == "cylinder")
 		  {
-			  geom_must = 7;
+			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_CYLINDER;
 		  }
 		  else if (key == "cone")
 		  {
-			  geom_must = 7;
+			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_TETRA;
 		  }
 		  else if (key == "sphere")
 		  {
-			  geom_must = 7;
+			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_SPHERE;
 		  }
 		  else if (key == "line")
 		  {
-			  geom_must = 7;
+			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_LINES;
 		  }
 		  else if (key == "gadget")
 		  {
-			  geom_must = 7;
+			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_GADGET;
 		  }
 		  else continue;
@@ -106,9 +106,10 @@ namespace Grasp {
 			  y_1 = atof(lst[4]->c_str()),
 			  z_1 = atof(lst[5]->c_str());
 		  int nSide = atoi(lst[6]->c_str());
+		  int clr = atoi(lst[7]->c_str());
 		  string name = *lst[lst.size() - 1];
 
-		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, nSide, true);
+		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, nSide, clr, true);
 
 		  TMolecule* mol = new TMolecule();
 		  mol->geob_id = obj->GetIndex();
@@ -121,13 +122,13 @@ namespace Grasp {
 			  if ((int)lst.size() > i + geom_must)
 			  {
 				  SetFeature(mol, i, *lst[i + geom_must]);
-				  if (mol->lstFeature[i]->pname == "color")
+				  /*if (mol->lstFeature[i]->pname == "color")
 				  {	// задать цвет
 					  unsigned char _red, _green, _blue;
 					  int clrInd = atoi(mol->lstFeature[i]->pcurr.c_str());
 					  Facet3::GetColorByIndex(clrInd, _red, _green, _blue);
 					  obj->SetColor(_red, _green, _blue);
-				  }
+				  }*/
 			  }
 		  }
 		  TMoleculeList.push_back(mol);
@@ -676,6 +677,10 @@ namespace Grasp {
 	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
 	  outFile.imbue(loc);
 
+	  const char* geom_header = IniFindValue("geom_header");
+	  const char* geom_record = IniFindValue("geom_record");
+	  const char* geom_features = IniFindValue("geom_features");
+
 	  outFile << "#BEAT generated" << endl;
 	  outFile << "#[Parameters]" << endl;
 	  for (int m = 0; m < lstDlg.size(); m++)
@@ -687,14 +692,18 @@ namespace Grasp {
 		  }
 	  }
 
-	  outFile << "#[Geom]" << endl;
-	  outFile << "features=";
-	  for (int m = 0; m < features.lstParams.size(); m++)
+	  if(geom_header != NULL )
+		outFile << geom_header << endl;
+	  if (geom_features != NULL)
 	  {
-		  if (m > 0) outFile << ",";
-		  outFile << utf8_to_wstring(features.lstParams[m]->pname);
+		  outFile << geom_features;// << "=";
+		  for (int m = 0; m < features.lstParams.size(); m++)
+		  {
+			  if (m > 0) outFile << ",";
+			  outFile << utf8_to_wstring(features.lstParams[m]->pname);
+		  }
+		  outFile << endl;
 	  }
-	  outFile << endl;
 
 	  int len = (int)TMoleculeList.size();
 	  nGadgets = 0;
@@ -712,7 +721,9 @@ namespace Grasp {
 			  continue;
 		  }*/
 
-		  SaveMol(outFile, TMoleculeList[m]);
+		  if(geom_record == NULL)
+			  SaveMol(outFile, TMoleculeList[m]);
+		  else SaveMolEx(outFile, TMoleculeList[m], geom_record);
 	  }
 
 	  outFile.close();
@@ -729,26 +740,29 @@ namespace Grasp {
 	  geob->GetScale(dx, dy, dz);
 	  geom_type_enum geom_type = geob->GetGeomType();
 	  int nSide = geob->GetNside();
+	  unsigned char _red, _green, _blue;
+	  geob->GetColor(_red, _green, _blue);
+	  int clr = 65536 * _red + 256 * _green + _blue;
 
 	  if (geom_type == geom_type_enum::GO_SPHERE)
 	  {
 		  out << "sphere=" << x_0 << "," << y_0 << "," << z_0 << ","
-			  << dx << "," << dy << "," << dz << "," << nSide;
+			  << dx << "," << dy << "," << dz << "," << nSide << "," << clr;
 	  }
 	  else if (geom_type == geom_type_enum::GO_BOX)
 	  {
 		  out << "box=" << x_0 << "," << y_0 << "," << z_0 << ","
-			  << dx << "," << dy << "," << dz << "," << nSide;
+			  << dx << "," << dy << "," << dz << "," << nSide << "," << clr;
 	  }
 	  else if (geom_type == geom_type_enum::GO_CYLINDER)
 	  {
 		  out << "cylinder=" << x_0 << "," << y_0 << "," << z_0 << ","
-			  << dx << "," << dy << "," << dz << "," << nSide;
+			  << dx << "," << dy << "," << dz << "," << nSide << "," << clr;
 	  }
 	  else if (geom_type == geom_type_enum::GO_TETRA)
 	  {
 		  out << "cone=" << x_0 << "," << y_0 << "," << z_0 << ","
-			  << dx << "," << dy << "," << dz << "," << nSide;
+			  << dx << "," << dy << "," << dz << "," << nSide << "," << clr;
 	  }
 	  else if (geom_type == geom_type_enum::GO_LINES)
 	  {
@@ -762,12 +776,12 @@ namespace Grasp {
 		  dy = v1->GetY();
 		  dz = v1->GetZ();
 		  out << "line=" << x_0 << "," << y_0 << "," << z_0 << ","
-			  << dx << "," << dy << "," << dz << "," << nSide;
+			  << dx << "," << dy << "," << dz << "," << nSide << "," << clr;
 	  }
 	  else if (geom_type == geom_type_enum::GO_GADGET)
 	  {
 		  out << "gadget=" << x_0 << "," << y_0 << "," << z_0 << ","
-			  << dx << "," << dy << "," << dz << "," << nSide;
+			  << dx << "," << dy << "," << dz << "," << nSide << "," << clr;
 	  }
 	  /*else if (geom_type == GO_POLY)
 	  {
@@ -784,6 +798,115 @@ namespace Grasp {
 		  out << "," << utf8_to_wstring(par->pcurr);
 	  }
 	  out << "," << utf8_to_wstring(mol->objname) << endl;
+  }
+
+  void BeatIni::SaveMolEx(std::wofstream& out, TMolecule* mol, const char* geom_record)
+  {
+	  GeOb* geob = geob_win->FindObjById(mol->geob_id);
+	  if (geob == NULL) return;
+
+	  double x_0, y_0, z_0, dx, dy, dz;
+	  geob->GetShift(x_0, y_0, z_0);
+	  geob->GetScale(dx, dy, dz);
+	  geom_type_enum geom_type = geob->GetGeomType();
+	  int nSide = geob->GetNside();
+	  unsigned char _red, _green, _blue;
+	  geob->GetColor(_red, _green, _blue);
+	  int clr = 65536 * _red + 256 * _green + _blue;
+
+	  char buf[330];
+	  std::size_t pos;
+	  string res = geom_record, toReplace, replaceWith;
+
+	  toReplace = "{geom_type}";
+	  if (geom_type == geom_type_enum::GO_SPHERE) replaceWith = "sphere";
+	  else if (geom_type == geom_type_enum::GO_BOX) replaceWith = "box";
+	  else if (geom_type == geom_type_enum::GO_CYLINDER) replaceWith = "cylinder";
+	  else if (geom_type == geom_type_enum::GO_TETRA) replaceWith = "cone";
+	  else if (geom_type == geom_type_enum::GO_LINES) 
+	  {
+		  Facet3* f = geob->GetFacet(0);
+		  Vec3* v1 = f->GetPoint(0);
+		  x_0 = v1->GetX();
+		  y_0 = v1->GetY();
+		  z_0 = v1->GetZ();
+		  v1 = f->GetPoint(1);
+		  dx = v1->GetX();
+		  dy = v1->GetY();
+		  dz = v1->GetZ();
+		  replaceWith = "line";
+	  }
+	  else if (geom_type == geom_type_enum::GO_GADGET) replaceWith = "gadget";
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{x}";
+	  sprintf_s(buf, "%.3f", x_0);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{y}";
+	  sprintf_s(buf, "%.3f", y_0);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{z}";
+	  sprintf_s(buf, "%.3f", z_0);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{dx}";
+	  sprintf_s(buf, "%.3f", dx);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{dy}";
+	  sprintf_s(buf, "%.3f", dy);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{dz}";
+	  sprintf_s(buf, "%.3f", dz);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{side}";
+	  sprintf_s(buf, "%d", nSide);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{clr}";
+	  sprintf_s(buf, "%d", clr);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  for (int i = 0; i < mol->lstFeature.size(); i++)
+	  {
+		  TParam* par = mol->lstFeature[i];
+		  toReplace = "{" + par->pname + "}";
+		  replaceWith = par->pcurr;
+		  pos = res.find(toReplace);
+		  if (pos != std::string::npos)
+			  res.replace(pos, toReplace.length(), replaceWith);
+	  }
+	  out << utf8_to_wstring(res) << endl;
   }
 
   void BeatIni::ParameterFull(std::wofstream& outFile, TParam* par)

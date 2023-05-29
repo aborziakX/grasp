@@ -34,6 +34,14 @@ Linux-C-MakeLists.txt переиеновать в CMakeLists.txt
 после cmake запускать для построения make .
 
 =============== beat
+В папке beat имеется файл beat.btt. Его можно использовать для команды меню "Проект/Создать".
 В папке beat имеется файл beat.bpj. Его можно использовать для команды меню "Проект/Открыть".
+
+В секции 
+[Controls]
+могут быть настройки генерации ini-файла, например: 
+geom_header=[Geometry]
+geom_record={geom_type};{x};{y};{z};{dx};{dy};{dz};{side};{clr};{speedX};{speedY};{speedZ};{mass};{temperature};{material}
+geom_features=features=geom_type,x,y,z,dx,dy,dz,side,clr,
 
 Для связи - Борзяк Андрей - aborziak@yandex.ru

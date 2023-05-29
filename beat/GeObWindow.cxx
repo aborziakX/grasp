@@ -51,9 +51,13 @@ void GeObWindow::Add(GeOb* cube)
 
 // создать GeOb и добавить в список (по умолчанию)
 GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, double z_0, double dx, double dy, double dz,
-    int nSide, bool bAdd)
+    int nSide, int clr, bool bAdd)
 {
     GeOb* obj = NULL;
+    unsigned char _red = clr / 65536;
+    unsigned char _blue = clr % 256;
+    unsigned char _green = clr / 256 - _red * 256;
+        
     if( geom_type == geom_type_enum::GO_SPHERE)
     {  // sphere
         obj = new Sphere();
@@ -96,6 +100,8 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
     else if (geom_type == geom_type_enum::GO_DEFAULT)
     {  // default
     }
+
+    if( obj != NULL ) obj->SetColor(_red, _green, _blue);
 
     if (obj != NULL && bAdd) Add(obj);
 

@@ -1,4 +1,6 @@
 ﻿#include "Dialogs.h"
+#include <FL/fl_show_colormap.H>
+#include <FL/Fl_Color_Chooser.H>
 
 namespace Grasp {
     bool IsValid(const char * val)
@@ -23,16 +25,43 @@ Pass_Window::Pass_Window(Fl_Callback* cb) :
 }
 //==
 
-//==Добавить куб
+//==Добавить куб etc.
+// выбор цвета
+#define fullcolor_cell (FL_FREE_COLOR)
+
+void cb_color(Fl_Widget* bt, void* v) {
+    AddCubeDialog* dlg = (AddCubeDialog*)v;
+    dlg->c = fl_show_colormap(dlg->c);
+    Fl_Box* b = dlg->Getbox();
+    b->color(dlg->c);
+    b->redraw();
+}
+void cb_color2(Fl_Widget* bt, void* v) {
+    AddCubeDialog* dlg = (AddCubeDialog*)v;
+    uchar r, g, b;
+    Fl::get_color(dlg->c, r, g, b);
+    if (!fl_color_chooser(u8"Новый цвет:", r, g, b, 2)) return;
+    dlg->c = fullcolor_cell;
+    dlg->red = r; 
+    dlg->green = g;
+    dlg->blue = b;
+    Fl::set_color(fullcolor_cell, r, g, b);
+    Fl_Box* bx = dlg->Getbox();
+    bx->color(fullcolor_cell);
+    bx->redraw();
+}
+
 AddCubeDialog::AddCubeDialog(Fl_Callback* cb) : 
     Fl_Window(200, 100, 300, 300, u8"Добавить куб")
 {
     button_Ok.callback(cb, &m1);
     button_Cancel.callback(cb, &m2);
-
-    //box_result.align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE | FL_ALIGN_CLIP);
+    button_Clr.callback(cb_color2, this);
+    box.box(FL_THIN_DOWN_BOX);
 }
-bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int &nSide)
+
+bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int &nSide,
+    unsigned char& _red, unsigned char& _green, unsigned char& _blue)
 {
     bool rc = true;
     try {
@@ -43,6 +72,10 @@ bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double&
         ySc = atof(inScY.value());
         zSc = atof(inScZ.value());
         nSide = atoi(inSide.value());
+
+        _red = red;
+        _green = green;
+        _blue = blue;
     }
     catch (...) {
         rc = false;
@@ -146,6 +179,24 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         inScY.set_visible();
         inScZ.set_visible();
     }
+
+    
+    if (geob != NULL)
+    {
+        geob->GetColor(red, green, blue);
+    }
+    /*
+    Fl_Color => 0xrrggbbii
+            | | | |
+            | | | +--- \ref drawing_colors "index" between 0 and 255
+            | | +----- blue color component (8 bit)
+            | +------- green component (8 bit)
+            +--------- red component (8 bit) */
+    Fl::set_color(fullcolor_cell, red, green, blue);
+    c = fullcolor_cell;
+    //c = (_red << 24) | (_green << 16) | (_blue << 8);
+    box.color(c);
+
 }
 //==
 

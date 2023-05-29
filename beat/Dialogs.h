@@ -39,11 +39,17 @@ class AddCubeDialog : public Fl_Window
     public:
         AddCubeDialog(Fl_Callback * cb);
         void Init(GeOb* _mol, geom_type_enum _geom_type); /** инициализация */
-        bool GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int& nSide);
+        bool GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int& nSide,
+            unsigned char & _red, unsigned char & _green, unsigned char & _blue);
         geom_type_enum geom_type = geom_type_enum::GO_BOX;
         GeOb* geob = NULL;
+        Fl_Box* Getbox() { return& box; }
+        Fl_Color c = FL_GREEN;
+        unsigned char red = 0, green = 255, blue = 0;
 
     private:
+        Fl_Button button_Clr{ 10, 180, 100, 25, u8"Цвет" };
+        Fl_Box box{ 150, 180, 100, 25 };
         Fl_Button button_Ok{ 10, 220, 100, 25, u8"Применить" };
         Fl_Button button_Cancel{ 150, 220, 100, 25, u8"Отмена" };
         int m1 = 1; //Ok

@@ -214,6 +214,7 @@ protected:
 	const char* IniFindValue(const char* key);
 	const char* IniFindValuePos(const char* key, int& npos);
 	void SaveMol(std::wofstream& out, TMolecule* mol);
+	void SaveMolEx(std::wofstream& out, TMolecule* mol, const char* geom_record);
 	void ParameterFull(std::wofstream& out, TParam* par);
 
 private:

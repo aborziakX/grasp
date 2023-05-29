@@ -407,12 +407,13 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
 {
     int m = *(int*)ud;
     GeOb* cub3 = NULL;
+    unsigned char _red, _green, _blue;
     bool bNew = false;
     if (m == 1)
     { //Ok
         double x, y, z, xSc, ySc, zSc;
         int nSide;
-        bool bSuc = add_cube_dlg->GetPos(x, y, z, xSc, ySc, zSc, nSide);
+        bool bSuc = add_cube_dlg->GetPos(x, y, z, xSc, ySc, zSc, nSide, _red, _green, _blue);
         if (!bSuc)
         {
             fl_message(u8"Ошибка в данных");
@@ -459,17 +460,6 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
 
             geob_win->Add(cub3);
             beatIni->AddGeOb(cub3);
-            // задать цвет по умолчанию
-            TMolecule* mol = beatIni->FindMolecule(cub3->GetIndex());
-            TParam* par = mol->FeatureByName("color");
-            if (par != NULL)
-            {
-                //TODO? цвет = geom_type
-                unsigned char _red, _green, _blue;
-                int clrInd = atoi(par->pcurr.c_str());
-                Facet3::GetColorByIndex(clrInd, _red, _green, _blue);
-                cub3->SetColor(_red, _green, _blue);
-            }
             bNew = true;
         }
         else
@@ -501,6 +491,8 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
             cub3->Translate(x, y, z);
         }
         if(bNew) FillListBox();
+
+        cub3->SetColor(_red, _green, _blue);
     }
     add_cube_dlg->hide();
 }
