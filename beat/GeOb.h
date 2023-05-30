@@ -193,7 +193,22 @@ public:
   int GetIndex() {
       return ge_id;
   }
-  
+
+  /**
+  установить индекс
+  */
+  void SetIndex(int id) {
+      ge_id = id;
+      if (counter <= id) counter = id + 1;
+  }
+
+  /**
+  сброс счетчика
+  */
+  static void ResetCounter() {
+      counter = 0;
+  }
+
   /**
   вернуть тип
   */

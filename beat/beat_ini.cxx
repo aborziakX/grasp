@@ -58,12 +58,12 @@ namespace Grasp {
 	  {
 		  string key = *lstKey[j];
 		  string val = *lstVal[j];
+		  if (val == "")
+			  continue;
 
 		  if (key == "box")
 		  {   //box=0,0,0, 15,15,15, 4, 256, 0,0,0, 10, 293,1000000, box1
 			  //x,y,z, dx,dy,dz, nSide, clr, features (speed 3, mass, temp, color), name
-			  if (val == "")
-				  continue;
 			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_BOX;
 		  }
@@ -107,9 +107,14 @@ namespace Grasp {
 			  z_1 = atof(lst[5]->c_str());
 		  int nSide = atoi(lst[6]->c_str());
 		  int clr = atoi(lst[7]->c_str());
-		  string name = *lst[lst.size() - 1];
+		  string * name = lst[lst.size() - 1];
 
 		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, nSide, clr, true);
+		  if (name->find("gid_") == 0)
+		  {
+			  int gid = atoi(name->c_str() + 4);
+			  obj->SetIndex(gid);
+		  }
 
 		  TMolecule* mol = new TMolecule();
 		  mol->geob_id = obj->GetIndex();
@@ -520,6 +525,7 @@ namespace Grasp {
 	  features.Reset();
 	  defmat.Reset();
 	  geob_win->Reset();
+	  GeOb::ResetCounter();
   }
 
   const char* BeatIni::IniFindValue(const char* look)
@@ -892,6 +898,13 @@ namespace Grasp {
 
 	  toReplace = "{clr}";
 	  sprintf_s(buf, "%d", clr);
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{gid}";
+	  sprintf_s(buf, "%d", geob->GetIndex());
 	  replaceWith = buf;
 	  pos = res.find(toReplace);
 	  if (pos != std::string::npos)
