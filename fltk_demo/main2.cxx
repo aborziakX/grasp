@@ -23,12 +23,12 @@
 // обработчик кнопки
 void butt_cb(Fl_Widget* butt, void* data)
 {
-    // Deactivate the button
-    butt->deactivate();                        // предотвратить повторное нажатие кнопки                   
+    // деактивировать, дабы предотвратить повторное нажатие кнопки
+    butt->deactivate();                   
     Fl::check();                               // дайте fltk немного процессорного времени, чтобы стала серая кнопка
     // Сделать индикатор выполнения
     Fl_Window* w = (Fl_Window*)data;           // 2-й параметр это главное окно
-    w->begin();                                // добавить к нему индикатор выполнения..
+    w->begin();                                // добавить к нему индикатор выполнения
     Fl_Progress* progress = new Fl_Progress(10, 50, 200, 30);
     progress->minimum(0);                      // установить диапазон прогресса от 0,0 до 1,0
     progress->maximum(1);
@@ -39,7 +39,7 @@ void butt_cb(Fl_Widget* butt, void* data)
     // Цикл вычислений..
     for (int t = 1; t <= 500; t++)
     {
-        progress->value((float)(t / 500.0));              // обновить индикатор выполнения со значением 0,0 ~ 1,0
+        progress->value((float)(t / 500.0));              // обновить индикатор выполнения со значением от 0,0 до 1,0
         char percent[10];
         sprintf(percent, "%d%%", int((t / 500.0) * 100.0));
         progress->label(percent);              // обновить метку индикатора выполнения
@@ -69,7 +69,7 @@ int main3(int argc, char** argv)
     // ждать закрытия окна
     return(Fl::run());
 }
-
+// главная функция
 int main(int argc, char** argv)
 {
     int rc = 0;

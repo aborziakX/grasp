@@ -28,8 +28,7 @@ int main1(int argc, char** argv) {
     // выполнять до закрытия окна
     return Fl::run();
 }
-//==
-
+// главная функция
 int main(int argc, char** argv)
 {
     int rc = 0;
