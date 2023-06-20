@@ -23,8 +23,15 @@ project(beat)
 # used to install FLTK.
 # (The file FLTKConfig.cmake and others must be found in that path.)
 
-set(FLTK_DIR "C:/fltk-1.4/build" CACHE STRING 
+if (WIN32)
+  set(FLTK_DIR "C:/fltk-1.4/build" CACHE STRING 
     "FLTK binary folder with FLTKConfig.cmake")
+endif (WIN32)
+if (UNIX)
+  set(FLTK_DIR "/home/andrey/fltk-1.4/build/" CACHE STRING 
+    "FLTK binary folder with FLTKConfig.cmake")
+endif (UNIX)
+
 find_package(FLTK REQUIRED NO_MODULE)
 #debug
 message(STATUS "BUILD_FLTK                  = ${BUILD_FLTK}")
@@ -33,7 +40,7 @@ message(STATUS "FLTK_FOUND                  = ${FLTK_FOUND}")
 message(STATUS "FLTK_COMMIT                 = '${FLTK_COMMIT}'")
 message(STATUS "FLTK_INCLUDE_DIRS           = ${FLTK_INCLUDE_DIRS}")
 
-add_executable(beat WIN32 MACOSX_BUNDLE "beat.cxx;GeObWindow.cxx;GeOb.cxx;Cube.cxx;Vec3.cxx;Cyl.cxx;Lines.cxx;Dialogs.cxx;beat_ini.cxx;Cone.cxx;Sphere.cxx;Gadget.cxx")
+add_executable(beat WIN32 MACOSX_BUNDLE "beat.cxx;GeObWindow.cxx;GeOb.cxx;Cube.cxx;Vec3.cxx;Cyl.cxx;Lines.cxx;Dialogs.cxx;beat_ini.cxx;Cone.cxx;Sphere.cxx;Gadget.cxx;Utils.cxx;Poly.cxx")
 if (APPLE)
   target_link_libraries(beat "-framework cocoa")
 endif (APPLE)

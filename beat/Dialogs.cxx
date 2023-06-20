@@ -1,4 +1,5 @@
 ﻿#include "Dialogs.h"
+#include "Utils.h"
 #include <FL/fl_show_colormap.H>
 #include <FL/Fl_Color_Chooser.H>
 
@@ -86,7 +87,7 @@ bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double&
 void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
 {
     geob = _geob;
-    /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 1000 - default */
+    /** 0 - sphere, 1 - box, 2 -cylinder, 3 -tetra, 4 - lines, 5 - gadget, 6-poly, 1000 - default */
     geom_type = _geom_type;
 
     char buf[33];
@@ -107,6 +108,7 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         else if (geom_type == geom_type_enum::GO_TETRA) this->copy_label(u8"Добавить конус");
         else if (geom_type == geom_type_enum::GO_SPHERE) this->copy_label(u8"Добавить сферу");
         else if (geom_type == geom_type_enum::GO_GADGET) this->copy_label(u8"Добавить точку учета");
+        else if (geom_type == geom_type_enum::GO_POLY) this->copy_label(u8"Добавить Полимер");
     }
     else
     {
@@ -158,10 +160,11 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         else if (geom_type == geom_type_enum::GO_TETRA) this->copy_label(u8"Изменить конус");
         else if (geom_type == geom_type_enum::GO_SPHERE) this->copy_label(u8"Изменить сферу");
         else if (geom_type == geom_type_enum::GO_GADGET) this->copy_label(u8"Изменить точку учета");
+        else if (geom_type == geom_type_enum::GO_POLY) this->copy_label(u8"Изменить Полимер");
     }
 
     if (geom_type == geom_type_enum::GO_BOX || geom_type == geom_type_enum::GO_LINES
-        || geom_type == geom_type_enum::GO_GADGET)
+        || geom_type == geom_type_enum::GO_GADGET || geom_type == geom_type_enum::GO_POLY)
     {
         inSide.clear_visible();
     }
@@ -359,7 +362,7 @@ bool PhysPropDialog::GetPos()
                 string txt(choice->text());
                 for (int k = 0; k < par->lstCombo.size(); k++)
                 {
-                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    Utils::split2vector(*par->lstCombo[k], ':', vec);
                     if (vec.size() == 2)
                     {
                         if (*vec[1] == txt)
@@ -375,7 +378,7 @@ bool PhysPropDialog::GetPos()
     catch (...) {
         rc = false;
     }
-    BeatIni::split2vector(NULL, ':', vec); // очистить память
+    Utils::split2vector(NULL, ':', vec); // очистить память
     return rc;
 }
 
@@ -443,7 +446,7 @@ void PhysPropDialog::Init(TMolecule* _mol)
                 int m = 0;
                 for (int k = 0; k < par->lstCombo.size(); k++)
                 {
-                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    Utils::split2vector(*par->lstCombo[k], ':', vec);
                     if (vec.size() == 2)
                     {
                         choice->add(vec[1]->c_str());
@@ -463,7 +466,7 @@ void PhysPropDialog::Init(TMolecule* _mol)
             choice->clear_visible();
         }
     }
-    BeatIni::split2vector(NULL, ':', vec); // очистить память
+    Utils::split2vector(NULL, ':', vec); // очистить память
 }
 //==
 
@@ -514,7 +517,7 @@ bool BeatDialog::GetPos()
                 string txt(choice->text());
                 for (int k = 0; k < par->lstCombo.size(); k++)
                 {
-                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    Utils::split2vector(*par->lstCombo[k], ':', vec);
                     if (vec.size() == 2)
                     {
                         if (*vec[1] == txt)
@@ -530,7 +533,7 @@ bool BeatDialog::GetPos()
     catch (...) {
         rc = false;
     }
-    BeatIni::split2vector(NULL, ':', vec); // очистить память
+    Utils::split2vector(NULL, ':', vec); // очистить память
     return rc;
 }
 
@@ -601,7 +604,7 @@ void BeatDialog::Init(TDialog* _mol)
                 int m = 0;
                 for (int k = 0; k < par->lstCombo.size(); k++)
                 {
-                    BeatIni::split2vector(*par->lstCombo[k], ':', vec);
+                    Utils::split2vector(*par->lstCombo[k], ':', vec);
                     if (vec.size() == 2)
                     {
                         choice->add(vec[1]->c_str());
@@ -622,7 +625,7 @@ void BeatDialog::Init(TDialog* _mol)
         }
 
     }
-    BeatIni::split2vector(NULL, ':', vec); // очистить память
+    Utils::split2vector(NULL, ':', vec); // очистить память
 }
 //==
 

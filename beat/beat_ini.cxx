@@ -1,4 +1,5 @@
 ﻿#include "beat_ini.h"
+#include "Utils.h"
 
 #ifndef _WINDOWS
 
@@ -95,7 +96,7 @@ namespace Grasp {
 		  else continue;
 
 		  string qs = val;
-		  split2vector(qs, ',', lst);
+		  Utils::split2vector(qs, ',', lst);
 
 		  if (lst.size() < geom_must)
 			  continue;
@@ -138,221 +139,21 @@ namespace Grasp {
 		  }
 		  TMoleculeList.push_back(mol);
 	  }
-	  split2vector(NULL, ',', lst); //чистка
+	  Utils::split2vector(NULL, ',', lst); //чистка
 
 	  return rc;
   }
 
-  // возвращает строку без пробелов вначале и вконце
-  char* BeatIni::trim(char* buf)
-  {
-	  int iStart = 0, iEnd = (int)strlen(buf) - 1;
-
-	  for (; iStart <= iEnd; iStart++)
-	  {
-		  char s = buf[iStart];
-		  if (s != ' ' && s != '\n' && s != '\r') break;
-	  }
-
-	  //skip trailing spaces
-	  for (; iStart <= iEnd; iEnd--)
-	  {
-		  char s = buf[iEnd];
-		  if (s != ' ' && s != '\n' && s != '\r') break;
-	  }
-
-	  buf[iEnd + 1] = 0;
-	  return buf + iStart;
-  }
-
-  // возвращает строку без пробелов вначале и вконце
-  string BeatIni::trim(string* s)
-  {
-	  int len = (int)s->size();
-	  char* buf = new char[len + 1];
-	  strcpy_s(buf, len + 1, s->c_str());
-	  char * buf_2 = trim(buf);
-	  string s2(buf_2);
-	  delete[] buf;
-	  return s2;
-  }
-
-  /*//log the error to "error.log"
-  void BeatIni::errorLog(const char* sFormat, ...)
-  {
-	  FILE* fp;
-	  time_t ltime;
-	  va_list lst;
-	  va_start(lst, sFormat);
-
-	  printf("[error]");
-	  vprintf(sFormat, lst);
-	  printf("\n");
-
-	  if ((fp = fopen("error.log", "a")) != NULL)
-	  {
-		  time(&ltime);
-		  fprintf(fp, "\n%s", ctime(&ltime));
-
-		  vfprintf(fp, sFormat, lst);
-		  fclose(fp);
-	  }
-  }*/
-
-  using sysclock_t = std::chrono::system_clock;
-  // пишем в лог UTF-8 данные
-  void BeatIni::ErrorLog(const wstring & ws)
-  {
-	  std::wofstream outFile("error.log", std::ios_base::app);
-	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
-	  outFile.imbue(loc);
-
-	  std::time_t now = sysclock_t::to_time_t(sysclock_t::now());
-
-	  char buf[33] = { 0 };
-	  std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S ", std::localtime(&now));
-
-	  outFile << buf << ws << "\n";
-	  outFile.close();
-  }
-  //demo
-  void BeatIni::WriteUnicodeUTF8toFile(const char* myFile, const wstring ws[], size_t nSize, bool append) 
-  {
-	  std::wofstream outFile;
-	  if (append)
-		  outFile.open(myFile, std::ios_base::app);
-	  else
-		  outFile.open(myFile, std::ios::out);
-	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
-	  outFile.imbue(loc);
-	  //wstring q(L"Хз ");
-	  for (size_t nIndex = 0; nIndex < nSize; ++nIndex)
-	  {
-		  outFile << ws[nIndex] << "\n";
-	  }
-	  outFile.close();
-  }
-  //demo
-  void BeatIni::ReadUtf8UnicodeFile(const char* filename)
-  {
-	  std::ifstream wif(filename);
-	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
-	  wif.imbue(loc);
-	  string sLine;
-	  int nCount = 1;
-
-	  do
-	  {
-		  getline(wif, sLine);
-		  cout << "\nLine line-" << nCount << " is:" << sLine;
-		  nCount++;
-	  } while (!wif.eof());
-
-	  wif.close();
-  }
-
-  // считать из UTF-8 файла в Unicode-16 строку
-  std::wstring BeatIni::readFile(const char* filename)
-  {
-	  std::wifstream wif(filename);
-	  wif.imbue(std::locale(std::locale::classic(), new std::codecvt_utf8<wchar_t>));
-	  std::wstringstream wss;
-	  wss << wif.rdbuf();
-	  wif.close();
-	  return wss.str();
-  }
-
-  // convert UTF-8 string to wstring
-  std::wstring BeatIni::utf8_to_wstring(const std::string& str)
-  {
-#ifdef CP11
-	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
-	  return myconv.from_bytes(str);
-#else
-	  if (str.empty()) {
-		  return L"";
-	  }
-	  int len = (int)str.size() + 1;
-	  setlocale(LC_CTYPE, "en_US.UTF-8");
-	  wchar_t* p = new wchar_t[len];
-	  mbstowcs(p, str.c_str(), len);
-	  std::wstring w_str(p);
-	  delete[] p;
-	  return w_str;
-#endif
-  }
-
-  // convert wstring to UTF-8 string
-  std::string BeatIni::wstring_to_utf8(const std::wstring& str)
-  {
-#ifdef CP11
-	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
-	  return myconv.to_bytes(str);
-#else
-	  if (str.empty()) {
-		  return "";
-	  }
-	  int len = (int)str.size() * 4 + 1;
-	  setlocale(LC_CTYPE, "en_US.UTF-8");
-	  char* p = new char[len];
-	  wcstombs(p, str.c_str(), len);
-	  std::string str2(p);
-	  delete[] p;
-	  return str2;
-#endif
-  }
-
-  // сформировать вектор из указателей на string
-  void BeatIni::split2vector(char* msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart)
-  {
-	  if (bCleanByStart)
-	  {
-		  for (int k = 0; k < vec.size(); k++)
-		  {
-			  delete vec[k];
-		  }
-		  vec.resize(0);
-	  }
-	  if (msg == NULL || strlen(msg) == 0)
-		  return;
-	  char ss[2] = { sepa, 0 };
-	  char * p = msg, * p_2;
-	  while (true)
-	  {
-		  p_2 = strstr(p, ss);
-		  if (p_2 == NULL)
-		  {
-			  vec.push_back(new std::string(p));
-			  break;
-		  }
-		  else
-		  {
-			  *p_2 = 0;
-			  vec.push_back(new std::string(p));
-			  p = p_2 + 1;
-		  }
-	  }
-  }
-
-  void BeatIni::split2vector(string& msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart)
-  {
-	  int len = (int)msg.size();
-	  char* buf = new char[len + 1];
-	  strcpy_s(buf, len + 1, msg.c_str());
-	  split2vector(buf, sepa, vec, bCleanByStart);
-	  delete[] buf;
-  }
-
   int BeatIni::IniParse(const char* fname)
   {
-	  wstring data = readFile(fname);
-	  string d8 = wstring_to_utf8(data);
+	  wstring data = Utils::readFile(fname);
+	  string d8 = Utils::wstring_to_utf8(data);
 	  int len = (int)d8.size();
 	  char* buf = new char[len + 1];
 	  strcpy_s(buf, len + 1, d8.c_str());
 
 	  vector<string*> vec;
-	  split2vector(buf, '\n', vec);
+	  Utils::split2vector(buf, '\n', vec);
 	  int vl = (int)vec.size();
 	  delete[] buf;
 
@@ -366,7 +167,7 @@ namespace Grasp {
 		  buf = new char[len + 1];
 		  strcpy_s(buf, len + 1, da);
 
-		  char* buf_2 = trim(buf);
+		  char* buf_2 = Utils::trim(buf);
 		  if (buf_2[0] == 0 || buf_2[0] == '#')
 		  {
 			  delete[] buf;
@@ -377,8 +178,8 @@ namespace Grasp {
 		  if (cpos != NULL)
 		  {	  //key=value
 			  *cpos++ = 0;	//break the string
-			  char* sKey = trim(buf_2);
-			  char* sVal = trim(cpos);
+			  char* sKey = Utils::trim(buf_2);
+			  char* sVal = Utils::trim(cpos);
 			  lstKey.push_back(new string(sKey));
 			  lstVal.push_back(new string(sVal));
 		  }
@@ -442,7 +243,7 @@ namespace Grasp {
 			  int len = (int)val.size();
 			  char* buf = new char[len + 1];
 			  strcpy_s(buf, len + 1, val.c_str());
-			  split2vector(buf, '|', vec);
+			  Utils::split2vector(buf, '|', vec);
 			  delete[] buf;
 			  if (vec.size() != 3)
 			  {				  
@@ -452,12 +253,12 @@ namespace Grasp {
 
 			  TParam* pParam = new TParam();
 			  pParam->pname = key;
-			  pParam->pvalue = trim(vec[0]);	//default
-			  pParam->pcurr = trim(vec[0]);	//current
+			  pParam->pvalue = Utils::trim(vec[0]);	//default
+			  pParam->pcurr = Utils::trim(vec[0]);	//current
 
-			  pParam->pcomment = trim(vec[2]);
+			  pParam->pcomment = Utils::trim(vec[2]);
 
-			  string tt = trim(vec[1]);
+			  string tt = Utils::trim(vec[1]);
 			  if (tt.find("string") == 0)
 				  pParam->ptype = 1;
 			  //??else if( tt.indexOf("slider") == 0 )
@@ -478,7 +279,7 @@ namespace Grasp {
 				  const char* ptr = tt.c_str() + i0 + 1;
 				  strcpy_s(buf, len + 2, ptr);
 				  buf[len] = 0;
-				  split2vector(buf, ',', vec);
+				  Utils::split2vector(buf, ',', vec);
 				  delete[] buf;
 
 				  for (int k = 0; k < vec.size(); k++)
@@ -491,7 +292,7 @@ namespace Grasp {
 			  dlg->lstParams.push_back(pParam);
 		  }
 	  }
-	  split2vector(NULL, '|', vec); //clean vec
+	  Utils::split2vector(NULL, '|', vec); //clean vec
 	  //IniUnload();
   }
 
@@ -620,7 +421,7 @@ namespace Grasp {
 	  outFile << "#BEAT saved" << endl;
 	  // сохранить свойства
 	  outFile << "[Features]" << endl;
-	  outFile << "features=" << utf8_to_wstring(features.dname) << endl;
+	  outFile << "features=" << Utils::utf8_to_wstring(features.dname) << endl;
 	  for (int m = 0; m < features.lstParams.size(); m++)
 	  { //velocityX=0 |double {-100000,100000} |скорость м/сек по оси X
 		  ParameterFull(outFile, features.lstParams[m]);
@@ -630,7 +431,7 @@ namespace Grasp {
 	  outFile << endl << "[Parameters]" << endl;
 	  for (int m = 0; m < lstDlg.size(); m++)
 	  {
-		  outFile << "dialog_" << m << "=" << utf8_to_wstring(lstDlg[m]->dname) << endl;
+		  outFile << "dialog_" << m << "=" << Utils::utf8_to_wstring(lstDlg[m]->dname) << endl;
 		  for (int n = 0; n < lstDlg[m]->lstParams.size(); n++)
 		  {
 			  ParameterFull(outFile, lstDlg[m]->lstParams[n]);
@@ -666,7 +467,7 @@ namespace Grasp {
 	  {
 		  for (int m = npos + 1; m < lstKey.size(); m++)
 		  {
-			  outFile << utf8_to_wstring(*lstKey[m]) << "=" << utf8_to_wstring(*lstVal[m]) << endl;
+			  outFile << Utils::utf8_to_wstring(*lstKey[m]) << "=" << Utils::utf8_to_wstring(*lstVal[m]) << endl;
 		  }
 	  }
 
@@ -693,8 +494,8 @@ namespace Grasp {
 	  {
 		  for (int n = 0; n < lstDlg[m]->lstParams.size(); n++)
 		  {
-			  outFile << utf8_to_wstring(lstDlg[m]->lstParams[n]->pname) << "=" <<
-				  utf8_to_wstring(lstDlg[m]->lstParams[n]->pcurr) << endl;
+			  outFile << Utils::utf8_to_wstring(lstDlg[m]->lstParams[n]->pname) << "=" <<
+				  Utils::utf8_to_wstring(lstDlg[m]->lstParams[n]->pcurr) << endl;
 		  }
 	  }
 
@@ -706,7 +507,7 @@ namespace Grasp {
 		  for (int m = 0; m < features.lstParams.size(); m++)
 		  {
 			  if (m > 0) outFile << ",";
-			  outFile << utf8_to_wstring(features.lstParams[m]->pname);
+			  outFile << Utils::utf8_to_wstring(features.lstParams[m]->pname);
 		  }
 		  outFile << endl;
 	  }
@@ -795,15 +596,15 @@ namespace Grasp {
 			  << dx << "," << dy << "," << dz << "," << mol->fname << "," << mol->composit;
 	  }*/
 	  else if (geom_type == geom_type_enum::GO_DEFAULT)
-		  out << "default=" << utf8_to_wstring(mol->composit);
+		  out << "default=" << Utils::utf8_to_wstring(mol->composit);
 	  else return;
 
 	  for (int i = 0; i < mol->lstFeature.size(); i++)
 	  {
 		  TParam* par = mol->lstFeature[i];
-		  out << "," << utf8_to_wstring(par->pcurr);
+		  out << "," << Utils::utf8_to_wstring(par->pcurr);
 	  }
-	  out << "," << utf8_to_wstring(mol->objname) << endl;
+	  out << "," << Utils::utf8_to_wstring(mol->objname) << endl;
   }
 
   void BeatIni::SaveMolEx(std::wofstream& out, TMolecule* mol, const char* geom_record)
@@ -919,7 +720,7 @@ namespace Grasp {
 		  if (pos != std::string::npos)
 			  res.replace(pos, toReplace.length(), replaceWith);
 	  }
-	  out << utf8_to_wstring(res) << endl;
+	  out << Utils::utf8_to_wstring(res) << endl;
   }
 
   void BeatIni::ParameterFull(std::wofstream& outFile, TParam* par)
@@ -936,11 +737,11 @@ namespace Grasp {
 		  ss << "} ";
 	  }
 
-	  outFile << utf8_to_wstring(par->pname) << "=" <<
-		  utf8_to_wstring(par->pcurr) << "|" <<
-		  utf8_to_wstring(par->PtypeToString()) <<
-		  utf8_to_wstring(ss.str()) << "|" <<
-		  utf8_to_wstring(par->pcomment) << endl;
+	  outFile << Utils::utf8_to_wstring(par->pname) << "=" <<
+		  Utils::utf8_to_wstring(par->pcurr) << "|" <<
+		  Utils::utf8_to_wstring(par->PtypeToString()) <<
+		  Utils::utf8_to_wstring(ss.str()) << "|" <<
+		  Utils::utf8_to_wstring(par->pcomment) << endl;
   }
 
 } // namespace Grasp

@@ -39,8 +39,10 @@
 #include "Cone.h"
 #include "Sphere.h"
 #include "Gadget.h"
+#include "Poly.h"
 #include "Dialogs.h"
 #include "beat_ini.h"
+#include "Utils.h"
 
 #define RUSSIAN
 #include "messages.h"
@@ -89,7 +91,7 @@ void PrepareBeatDialog()
 {
     if (beatIni != NULL && bt_dlg == NULL)
     {
-        BeatIni::ErrorLog(L"popup");
+        Utils::ErrorLog(L"popup");
         TDialog* dlg = beatIni->lstDlg.size() > 0 ? beatIni->lstDlg[0] : NULL;
         bt_dlg = new BeatDialog(bt_dlg_done_cb);
         bt_dlg->Init(dlg);
@@ -180,7 +182,7 @@ void file_open_cb(Fl_Widget*, void*)
     if (beatIni == NULL)
     {
         beatIni = new BeatIni(geob_win);
-        beatIni->ErrorLog(L"Я started2!");
+        Utils::ErrorLog(L"Я started2!");
         //const wstring sMessageJpn[] = { L"Я started!" };
         //beatIni->WriteUnicodeUTF8toFile("error.log", sMessageJpn, 1, true);
     }
@@ -217,7 +219,7 @@ void file_create_cb(Fl_Widget*, void*)
     if (beatIni == NULL)
     {
         beatIni = new BeatIni(geob_win);
-        beatIni->ErrorLog(L"Я started2!");
+        Utils::ErrorLog(L"Я started2!");
     }
     int n = beatIni->LoadIni(sIniFile.c_str());
     cout << "\nn=" << n;
@@ -401,6 +403,7 @@ const int m_2 = 2; // лин.
 const int m_3 = 3; // Конус
 const int m_4 = 4; // Сфера
 const int m_5 = 5; // Точка учета
+const int m_6 = 6; // Полимер
 
 // Добавить завершено
 void add_cube_done_cb(Fl_Widget* bt, void* ud)
@@ -457,6 +460,8 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
                 cub3->Scale(0.2, 0.2, 0.2);
                 cub3->Translate(x, y, z);
             }
+            else if (add_cube_dlg->geom_type == geom_type_enum::GO_POLY)
+                cub3 = new Poly("C:\\grasp\\beat\\vrml\\scene.wrl");
 
             geob_win->Add(cub3);
             beatIni->AddGeOb(cub3);
@@ -542,6 +547,13 @@ void add_cube_cb(Fl_Widget* bt, void* ud)
         if (add_cube_dlg == NULL)
             add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
         add_cube_dlg->Init(NULL, geom_type_enum::GO_GADGET);
+        add_cube_dlg->show();
+    }
+    else if (m == m_6)
+    { // Полимер
+        if (add_cube_dlg == NULL)
+            add_cube_dlg = new AddCubeDialog(add_cube_done_cb);
+        add_cube_dlg->Init(NULL, geom_type_enum::GO_POLY);
         add_cube_dlg->show();
     }
 }
@@ -829,6 +841,7 @@ void MakeForm(const char *name)
   menubar->add(u8"Геометрия/Добавить/Сфера", FL_COMMAND + 'p', add_cube_cb, (void*)&m_4);
   menubar->add(u8"Геометрия/Добавить/Линии", FL_COMMAND + 'l', add_cube_cb, (void*)&m_2);
   menubar->add(u8"Геометрия/Добавить/Точку учета", FL_COMMAND + 't', add_cube_cb, (void*)&m_5);
+  menubar->add(u8"Геометрия/Добавить/Полимер", 0, add_cube_cb, (void*)&m_6);
   menubar->add(u8"Геометрия/Изменить", FL_COMMAND + 'e', edit_cb);
   menubar->add(u8"Геометрия/Удалить", FL_COMMAND + 'd', delete_cb);
   menubar->add(u8"Геометрия/Свойства", FL_COMMAND + 'h', features_cb);

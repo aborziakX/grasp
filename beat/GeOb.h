@@ -168,7 +168,7 @@ private:
 /**
 типы геометрии
 */
-enum class geom_type_enum { GO_SPHERE = 0, GO_BOX, GO_CYLINDER, GO_TETRA, GO_LINES, GO_GADGET, GO_DEFAULT = 1000 };
+enum class geom_type_enum { GO_SPHERE = 0, GO_BOX, GO_CYLINDER, GO_TETRA, GO_LINES, GO_GADGET, GO_POLY, GO_DEFAULT = 1000 };
 
 
 /// <summary>
