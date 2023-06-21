@@ -6,7 +6,27 @@
 #include "Vec3.h"
 #include "GeOb.h"
 
+using namespace std;
+
 namespace Grasp {
+/**
+  типы лексемы из более 1 символа и специальные случаи
+*/
+enum eLex {
+    EOL = 1000, BOTTOM, KEYWORD, NUMBER, STRING, BRACKET_BEG, BRACKET_END,
+    SQ_BRACKET_BEG, SQ_BRACKET_END, CURLY_BEG, CURLY_END, UN_PLUS, UN_MINUS, DOT
+};
+
+/**
+  структура лексемы
+*/
+struct Lexema
+{
+    int lex; //!< типы лексемы
+    double val; //!< для чисел
+    string sVal; //!< для строк
+};
+
 
 /**
 @class   Poly
@@ -38,8 +58,10 @@ public:
 
 protected:
 private:
-    std::string fname; ///< радиус
+    std::string fname; //!< файл с данными
+    std::vector<Lexema*> vecLex; /** стек лексем */
 
+    int NextLexema(const char* sProg, int& ip, int len, char* buf); //!< получит тип следующей лексемы
     //void Load();
 };
 

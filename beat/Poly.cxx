@@ -16,20 +16,8 @@ void Poly::GetName(char buf[33])
     snprintf(buf, sz, "%s id %d", u8"Полимер,", GetIndex());
 }
 
-/**
-* enumerate special cases and lexemas that take more than 1 character
-*/
-enum elex {
-	EOL = 1000, BOTTOM, KEYWORD, NUMBER, STRING, BRACKET_BEG, BRACKET_END,
-	SQ_BRACKET_BEG, SQ_BRACKET_END, CURLY_BEG, CURLY_END, UN_PLUS, UN_MINUS, DOT, E_SIGN
-};
-
-//keywords
-//MaterialBinding value PER_VERTEX_INDEXED Background skyColor Coordinate3
-//point Material emissiveColor IndexedFaceSet coordIndex
-
-// get next lexema
-int lexema(const char* sProg, int& ip, int len, char* buf)
+// получит тип следующей лексемы
+int Poly::NextLexema(const char* sProg, int& ip, int len, char* buf)
 {
 	int i;
 	buf[0] = 0;
@@ -54,44 +42,52 @@ int lexema(const char* sProg, int& ip, int len, char* buf)
 		if (sProg[ip] == '(')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return BRACKET_BEG;
 		}
 		if (sProg[ip] == ')')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return BRACKET_END;
 		}
 
 		if (sProg[ip] == '[')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return SQ_BRACKET_BEG;
 		}
 		if (sProg[ip] == ']')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return SQ_BRACKET_END;
 		}
 
 		if (sProg[ip] == '{')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return CURLY_BEG;
 		}
 		if (sProg[ip] == '}')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return CURLY_END;
 		}
 
 		if (sProg[ip] == '+')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return UN_PLUS;
 		}
 		if (sProg[ip] == '-')
 		{
 			buf[0] = sProg[ip++];
+			buf[1] = 0;
 			return UN_MINUS;
 		}
 		 
@@ -172,15 +168,28 @@ void Poly::Init() {
     char buf[100];
 	std::stringstream ss;
 	int lex = -1, ip;
+	double val;
 	for (ip = 0; lex != EOL; )
 	{	//read next lexema and analyze
-		lex = lexema(d8.c_str(), ip, len, buf);
-		cout << "code " << lex << " at pos " << ip << endl;
+		lex = NextLexema(d8.c_str(), ip, len, buf);
 		if (lex < 0)
 		{
 			ss.clear();
 			ss << "Error code " << lex << " at pos " << ip << endl;
-			return Utils::ErrorLog(Utils::utf8_to_wstring(ss.str()));
+			cout << ss.str();
+			//return Utils::ErrorLog(Utils::utf8_to_wstring(ss.str()));
+		}
+		else
+		{
+			if( lex == NUMBER )
+			{ 
+				val = atof(buf);
+				cout << "code " << lex << ", " << val << ", pos " << ip << endl;
+			}
+			else
+			{
+				cout << "code " << lex << ", " << buf << ", pos " << ip << endl;
+			}
 		}
 	}
 
