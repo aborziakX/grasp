@@ -12,17 +12,17 @@ namespace Grasp {
 /**
   типы лексемы из более 1 символа и специальные случаи
 */
-enum eLex {
+enum class eLex {
     EOL = 1000, BOTTOM, KEYWORD, NUMBER, STRING, BRACKET_BEG, BRACKET_END,
-    SQ_BRACKET_BEG, SQ_BRACKET_END, CURLY_BEG, CURLY_END, UN_PLUS, UN_MINUS, DOT
+    SQ_BRACKET_BEG, SQ_BRACKET_END, CURLY_BEG, CURLY_END, UN_PLUS, UN_MINUS, COMMA
 };
 
 /**
-  структура лексемы
+  структура для лексемы
 */
 struct Lexema
 {
-    int lex; //!< типы лексемы
+    int lex; //!< тип лексемы
     double val; //!< для чисел
     string sVal; //!< для строк
 };
@@ -35,7 +35,7 @@ struct Lexema
 class Poly : public GeOb {
 public:
   /**
-  Конструктор Конуса с центром в (0, 0, 0.5) и радиусом у основания 0.5
+  Конструктор Полимер с центром в (0, 0, 0)
   */
   Poly(const char * _fname)
     : GeOb(){
@@ -61,8 +61,11 @@ private:
     std::string fname; //!< файл с данными
     std::vector<Lexema*> vecLex; /** стек лексем */
 
-    int NextLexema(const char* sProg, int& ip, int len, char* buf); //!< получит тип следующей лексемы
-    //void Load();
+    int NextLexema(const char* sProg, int& ip, int len, char* buf); //!< получить тип следующей лексемы
+    void AddLexema2Stack(int lex, const char* buf, double val); //!< создать лексему и добавить в стек
+    void RemoveLexemaStack(int n); //!< удалить n лексем из стека
+    void RemoveLexemaUntil(int n); //!< удалить лексем из стека включая позицию n 
+    void FindKeyword(int & ip, string & kw); //!< найти KEYWORD лексему 
 };
 
 

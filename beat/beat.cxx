@@ -497,7 +497,8 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
         }
         if(bNew) FillListBox();
 
-        cub3->SetColor(_red, _green, _blue);
+        if (add_cube_dlg->geom_type != geom_type_enum::GO_POLY)
+            cub3->SetColor(_red, _green, _blue);
     }
     add_cube_dlg->hide();
 }
