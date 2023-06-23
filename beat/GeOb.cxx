@@ -50,7 +50,7 @@ void Facet3::CalcNormal()
 }
 
 // рисуем Facet3
-void Facet3::Draw(Vec3& vecCamDir, bool wire, bool norm)
+void Facet3::Draw(Vec3& vecCamDir, bool wire, bool norm, bool bDouble)
 {
     unsigned char _red, _green, _blue;
     Facet3* f = this;
@@ -68,7 +68,7 @@ void Facet3::Draw(Vec3& vecCamDir, bool wire, bool norm)
     double sca = (vecCamDir.ScalarProduct(f->vNorm)); //между -1 и 1
     int sz = f->GetSize();
     if (sz == 2) sca = -1;
-    if (sca > 0)
+    if (sca > 0 && !bDouble)
     { // невидимая грань
         _red = 0;
         _green = 0;

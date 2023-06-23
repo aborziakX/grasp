@@ -2,6 +2,18 @@
 #include "Utils.h"
 #include <FL/fl_show_colormap.H>
 #include <FL/Fl_Color_Chooser.H>
+#include <FL/Fl_Native_File_Chooser.H>
+
+#include <stdlib.h>
+#include <stdio.h>  /* defines FILENAME_MAX */
+#ifdef _WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
+#endif
 
 namespace Grasp {
     bool IsValid(const char * val)
@@ -51,6 +63,55 @@ void cb_color2(Fl_Widget* bt, void* v) {
     bx->color(fullcolor_cell);
     bx->redraw();
 }
+// выбор файла
+char cCurrentPath[FILENAME_MAX]; // для текущей директории
+string file_open_dialog(const char* sTitle, const char* sFilter, bool bNew = false)
+{
+    if (!GetCurrentDir(cCurrentPath, sizeof(cCurrentPath)))
+    {
+        return "";
+    }
+    cCurrentPath[sizeof(cCurrentPath) - 1] = '\0'; /* not really required */
+    //fl_message(cCurrentPath);
+    //return "";
+
+    string sIniFile;
+    // создать "нативный быбор файла" диалог
+    Fl_Native_File_Chooser native;
+    native.title(sTitle);
+    int t = bNew ? Fl_Native_File_Chooser::BROWSE_SAVE_FILE : // need this if file doesn't exist yet
+        Fl_Native_File_Chooser::BROWSE_FILE;
+    native.type(t);
+    native.filter(sFilter);
+    native.directory(cCurrentPath);
+    //native.preset_file(G_filename->value());
+    // Show native chooser
+    switch (native.show()) {
+    case -1: //G_tty->printf("ERROR: %s\n", native.errmsg()); 
+        fl_beep(); break;      // ERROR
+    case  1: //G_tty->printf("*** CANCEL\n"); 
+        break;           // CANCEL
+    default:                                                            // PICKED FILE
+        if (native.filename()) {
+            sIniFile = native.filename();
+            //G_tty->printf("filename='%s'\n", native.filename());
+        }
+        else {
+            fl_message("NULL");
+            //G_tty->printf("filename='(null)'\n");
+        }
+        break;
+    }
+    return sIniFile;
+}
+void cb_file(Fl_Widget* bt, void* v) {
+    string s = file_open_dialog(u8"Выбор файла VRML", u8"VRML Файлы\t*.wrl");
+    if (s != "")
+    {
+        AddCubeDialog* dlg = (AddCubeDialog*)v;
+        dlg->GetFileBox()->value(s.c_str());
+    }
+}
 
 AddCubeDialog::AddCubeDialog(Fl_Callback* cb) : 
     Fl_Window(200, 100, 300, 300, u8"Добавить куб")
@@ -59,10 +120,11 @@ AddCubeDialog::AddCubeDialog(Fl_Callback* cb) :
     button_Cancel.callback(cb, &m2);
     button_Clr.callback(cb_color2, this);
     box.box(FL_THIN_DOWN_BOX);
+    button_File.callback(cb_file, this);
 }
 
 bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double& ySc, double& zSc, int &nSide,
-    unsigned char& _red, unsigned char& _green, unsigned char& _blue)
+    unsigned char& _red, unsigned char& _green, unsigned char& _blue, string& sFile)
 {
     bool rc = true;
     try {
@@ -77,6 +139,7 @@ bool AddCubeDialog::GetPos(double& x, double& y, double& z, double& xSc, double&
         _red = red;
         _green = green;
         _blue = blue;
+        sFile = box_File.value();
     }
     catch (...) {
         rc = false;
@@ -154,6 +217,8 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         sprintf_s(buf, "%d", geob->GetNside());
         inSide.value(buf);
 
+        box_File.value(geob->fname.c_str());
+
         if (geom_type == geom_type_enum::GO_BOX) this->copy_label(u8"Изменить куб");
         else if (geom_type == geom_type_enum::GO_CYLINDER) this->copy_label(u8"Изменить цилиндр");
         else if (geom_type == geom_type_enum::GO_LINES) this->copy_label(u8"Изменить линию");
@@ -183,6 +248,29 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
         inScZ.set_visible();
     }
 
+    if (geom_type == geom_type_enum::GO_POLY)
+    {
+        button_Clr.clear_visible();
+        box.clear_visible();
+        if (geob == NULL)
+        {
+            button_File.set_visible();
+            box_File.set_visible();
+        }
+        else
+        {
+            button_File.clear_visible();
+            box_File.clear_visible();
+        }
+    }
+    else
+    {
+        button_File.clear_visible();
+        box_File.clear_visible();
+
+        button_Clr.set_visible();
+        box.set_visible();
+    }
     
     if (geob != NULL)
     {
@@ -199,7 +287,6 @@ void AddCubeDialog::Init(GeOb* _geob, geom_type_enum _geom_type)
     c = fullcolor_cell;
     //c = (_red << 24) | (_green << 16) | (_blue << 8);
     box.color(c);
-
 }
 //==
 

@@ -109,7 +109,7 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
     }
 
 
-    if( obj != NULL ) obj->SetColor(_red, _green, _blue);
+    if( obj != NULL && geom_type != geom_type_enum::GO_POLY) obj->SetColor(_red, _green, _blue);
 
     if (obj != NULL && bAdd) Add(obj);
 
@@ -208,14 +208,15 @@ void GeObWindow::Draw() {
     ResortFacet(vecCam, vecCamDir);
     for (int i = 0; i < vecFacet.size(); i++) {
         Facet3 * f = vecFacet[i];
-        bool wire = false, norm = false;
+        bool wire = false, norm = false, bDouble = false;
         GeOb* owner = f->GetOwner();
         if (owner != NULL)
         {
             wire = owner->bWire;
             norm = owner->bNormal;
+            bDouble = owner->bDoubleSide;
         }
-        f->Draw(vecCamDir, wire, norm);
+        f->Draw(vecCamDir, wire, norm, bDouble);
     }
 
     glPopMatrix();

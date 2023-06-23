@@ -416,10 +416,16 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
     { //Ok
         double x, y, z, xSc, ySc, zSc;
         int nSide;
-        bool bSuc = add_cube_dlg->GetPos(x, y, z, xSc, ySc, zSc, nSide, _red, _green, _blue);
+        string sFile;
+        bool bSuc = add_cube_dlg->GetPos(x, y, z, xSc, ySc, zSc, nSide, _red, _green, _blue, sFile);
         if (!bSuc)
         {
             fl_message(u8"Ошибка в данных");
+            return;
+        }
+        if (add_cube_dlg->geom_type == geom_type_enum::GO_POLY && sFile.empty())
+        {
+            fl_message(u8"Файл не выбран!");
             return;
         }
 
@@ -461,7 +467,7 @@ void add_cube_done_cb(Fl_Widget* bt, void* ud)
                 cub3->Translate(x, y, z);
             }
             else if (add_cube_dlg->geom_type == geom_type_enum::GO_POLY)
-                cub3 = new Poly("C:\\grasp\\beat\\vrml\\scene.wrl");
+                cub3 = new Poly(sFile.c_str());// "C:\\grasp\\beat\\vrml\\scene.wrl");
 
             geob_win->Add(cub3);
             beatIni->AddGeOb(cub3);

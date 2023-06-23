@@ -224,6 +224,7 @@ void Poly::FindKeyword(int& ip, string& kw)
 //создание граней - простой разбор vrml 1.0 файла
 void Poly::Init() {
     GeOb::Init();
+	bDoubleSide = true;
 
     wstring data = Utils::readFile(fname.c_str());
     string d8 = Utils::wstring_to_utf8(data);
@@ -479,7 +480,7 @@ void Poly::Init() {
 
 	// build facets
 	Vec3* vf[4];
-	int curPoint = 0;
+	int curPoint = 0, tot = 0;
 	int _red = 0, _green = 0, _blue = 0;
 	for (int j = 0; j < vecFac.size(); j++)
 	{
@@ -487,13 +488,6 @@ void Poly::Init() {
 		if (k == -1)
 		{ //грани
 			if( curPoint == 0 ) continue;
-			Facet3* fac = new Facet3();
-			fac->Add(new Vec3(*vf[0]));
-			fac->Add(new Vec3(*vf[1]));
-			fac->Add(new Vec3(*vf[2]));
-			if (curPoint == 4)
-				fac->Add(new Vec3(*vf[3]));
-			fac->SetOwner(this);
 
 			_red = 255 *_red / curPoint;
 			_green = 255 * _green / curPoint;
@@ -504,13 +498,34 @@ void Poly::Init() {
 			if (_red < 0) _red = 0;
 			if (_green < 0) _green = 0;
 			if (_blue < 0) _blue = 0;
+
+			Facet3* fac = new Facet3();
+			fac->Add(new Vec3(*vf[0]));
+			fac->Add(new Vec3(*vf[1]));
+			fac->Add(new Vec3(*vf[2]));
+			if (curPoint == 4)
+				fac->Add(new Vec3(*vf[3]));
+			fac->SetOwner(this);
 			fac->SetColor((unsigned char)_red, (unsigned char)_green, (unsigned char)_blue);
 			vecFacet.push_back(fac);
+
+			/*// stupid - double side facet
+			fac = new Facet3();
+			if (curPoint == 4)
+				fac->Add(new Vec3(*vf[3]));
+			fac->Add(new Vec3(*vf[2]));
+			fac->Add(new Vec3(*vf[1]));
+			fac->Add(new Vec3(*vf[0]));
+			fac->SetOwner(this);
+			fac->SetColor((unsigned char)_red, (unsigned char)_green, (unsigned char)_blue);
+			vecFacet.push_back(fac);*/
 
 			curPoint = 0;
 			_red = 0;
 			_green = 0;
 			_blue = 0;
+			tot++;
+			//if (tot >= 200) break;
 		}
 		else
 		{ // копить точки

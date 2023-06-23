@@ -102,7 +102,7 @@ public:
   /**
   рисуем
   */
-  void Draw(Vec3& vecCamDir, bool wire = true, bool norm = true);
+  void Draw(Vec3& vecCamDir, bool wire = true, bool norm = true, bool bDouble = false);
 
   /**
   получить 'нормаль пересчитана'
@@ -348,6 +348,8 @@ public:
   bool bWire = false; /** true=только ребра */
   bool bNormal = false; /** true=рисовать нормали */
   bool bSelect = false; /** true=рисовать куб вокруг */
+  bool bDoubleSide = false; /** true=2 стороны */
+  std::string fname; //!< файл с данными
 
 protected:
   std::vector<Facet3 *> vecFacet; /** список граней */

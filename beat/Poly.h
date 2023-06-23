@@ -58,7 +58,6 @@ public:
 
 protected:
 private:
-    std::string fname; //!< файл с данными
     std::vector<Lexema*> vecLex; /** стек лексем */
 
     int NextLexema(const char* sProg, int& ip, int len, char* buf); //!< получить тип следующей лексемы
