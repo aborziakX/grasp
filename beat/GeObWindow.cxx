@@ -52,7 +52,7 @@ void GeObWindow::Add(GeOb* cube)
 
 // создать GeOb и добавить в список (по умолчанию)
 GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, double z_0, double dx, double dy, double dz,
-    int nSide, int clr, bool bAdd)
+    int nSide, int clr, string & fin, bool bAdd)
 {
     GeOb* obj = NULL;
     unsigned char _red = clr / 65536;
@@ -103,7 +103,7 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
     }
     else if (geom_type == geom_type_enum::GO_POLY)
     {  // poly
-        obj = new Poly("C:\\grasp\\beat\\vrml\\scene.wrl");
+        obj = new Poly(fin.c_str());
         obj->Scale(dx, dy, dz);
         obj->Translate(x_0, y_0, z_0);
     }

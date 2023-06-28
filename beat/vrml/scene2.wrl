@@ -1,0 +1,36 @@
+#VRML V1.0 ascii
+    MaterialBinding
+{   value PER_VERTEX_INDEXED
+}
+    Background
+{    skyColor [1 1 1]
+}
+     Coordinate3 {
+     point [
+             1.0000E+00  0.0000E+00  0.0000E+01,
+             0 1 0,
+             0 0 1,
+
+             1.0000E+00  0.0000E+00  0.0000E+01,
+             0 0 1,
+             0 1 0,
+      ]
+}
+      Material
+{
+    emissiveColor [
+          255 0 0,
+          0 255 0,
+          0 0 25.50000E+01,
+
+          0 255 0,
+          0 255 0,
+          0 255 0,
+         ]
+       }
+         IndexedFaceSet {
+               coordIndex [
+                     0, 1, 2, -1,
+                     #3, 4, 5, -1
+       ]
+   }

@@ -93,6 +93,13 @@ namespace Grasp {
 			  geom_must = 8;
 			  geom_type = geom_type_enum::GO_GADGET;
 		  }
+		  else if (key == "poly")
+		  {
+			  /*out << "poly=" << x_0 << "," << y_0 << "," << z_0 << ","
+				  << dx << "," << dy << "," << dz << "," << geob->fname.c_str();*/
+			  geom_must = 7;
+			  geom_type = geom_type_enum::GO_POLY;
+		  }
 		  else continue;
 
 		  string qs = val;
@@ -106,11 +113,12 @@ namespace Grasp {
 			  x_1 = atof(lst[3]->c_str()),
 			  y_1 = atof(lst[4]->c_str()),
 			  z_1 = atof(lst[5]->c_str());
-		  int nSide = atoi(lst[6]->c_str());
+		  int nSide = (geom_type != geom_type_enum::GO_POLY ? atoi(lst[6]->c_str()) : 4);
 		  int clr = atoi(lst[7]->c_str());
 		  string * name = lst[lst.size() - 1];
+		  string fin = (geom_type != geom_type_enum::GO_POLY ? "" : lst[6]->c_str());
 
-		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, nSide, clr, true);
+		  GeOb * obj = geob_win->CreateObj(geom_type, x_0, y_0, z_0, x_1, y_1, z_1, nSide, clr, fin, true);
 		  if (name->find("gid_") == 0)
 		  {
 			  int gid = atoi(name->c_str() + 4);
@@ -590,11 +598,11 @@ namespace Grasp {
 		  out << "gadget=" << x_0 << "," << y_0 << "," << z_0 << ","
 			  << dx << "," << dy << "," << dz << "," << nSide << "," << clr;
 	  }
-	  /*else if (geom_type == GO_POLY)
+	  else if (geom_type == geom_type_enum::GO_POLY)
 	  {
 		  out << "poly=" << x_0 << "," << y_0 << "," << z_0 << ","
-			  << dx << "," << dy << "," << dz << "," << mol->fname << "," << mol->composit;
-	  }*/
+			  << dx << "," << dy << "," << dz << "," << geob->fname.c_str();
+	  }
 	  else if (geom_type == geom_type_enum::GO_DEFAULT)
 		  out << "default=" << Utils::utf8_to_wstring(mol->composit);
 	  else return;
@@ -644,6 +652,7 @@ namespace Grasp {
 		  replaceWith = "line";
 	  }
 	  else if (geom_type == geom_type_enum::GO_GADGET) replaceWith = "gadget";
+	  else if (geom_type == geom_type_enum::GO_POLY) replaceWith = "poly";
 	  pos = res.find(toReplace);
 	  if (pos != std::string::npos)
 		  res.replace(pos, toReplace.length(), replaceWith);
@@ -706,6 +715,13 @@ namespace Grasp {
 
 	  toReplace = "{gid}";
 	  sprintf_s(buf, "%d", geob->GetIndex());
+	  replaceWith = buf;
+	  pos = res.find(toReplace);
+	  if (pos != std::string::npos)
+		  res.replace(pos, toReplace.length(), replaceWith);
+
+	  toReplace = "{file}";
+	  sprintf_s(buf, "%s", geob->fname.c_str());
 	  replaceWith = buf;
 	  pos = res.find(toReplace);
 	  if (pos != std::string::npos)

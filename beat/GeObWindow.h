@@ -260,7 +260,7 @@ public:
   создать GeOb и добавить в список (по умолчанию)
   */
   GeOb * CreateObj(geom_type_enum typ, double x_0, double y_0, double z_0, double dx, double dy, double dz,
-      int nSide, int clr, bool bAdd = true);
+      int nSide, int clr, string& fin, bool bAdd = true);
 
   /**
   найти GeOb по id
