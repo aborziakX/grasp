@@ -2,7 +2,7 @@
 // Hello, flex_demo! Небольшие программы для изучения FLTK.
 //
 // [program/widget] is based in part on the work of the Fast Light Tool Kit (FLTK) project (https://www.fltk.org)
-// 
+//
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
