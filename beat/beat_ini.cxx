@@ -1,23 +1,6 @@
 ﻿#include "beat_ini.h"
 #include "Utils.h"
 
-#ifndef _WINDOWS
-
-#ifndef errno_t
-#define errno_t int
-#endif
-
-errno_t strcpy_s(char* dst, size_t size, const char* src)
-{
-	if (!dst || !src) return EINVAL;
-	for (; size > 0; --size)
-	{
-		if (!(*dst++ = *src++)) return 0;
-	}
-	return ERANGE;
-}
-#endif
-
 namespace Grasp {
   BeatIni::BeatIni(GeObWindow* gw)
   {

@@ -1,11 +1,6 @@
 ﻿#include "Utils.h"
 
 #ifndef _WINDOWS
-
-#ifndef errno_t
-#define errno_t int
-#endif
-
 errno_t strcpy_s(char* dst, size_t size, const char* src)
 {
 	if (!dst || !src) return EINVAL;
@@ -226,4 +221,17 @@ namespace Grasp {
 	  delete[] buf;
   }
 
+  // количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
+  long Utils::getTime()
+  {
+	  namespace sc = std::chrono;
+	  auto time = sc::system_clock::now(); // текущее время
+	  auto since_epoch = time.time_since_epoch(); // с начала эпохи
+	  // I don't know what system_clock returns
+	  // I think it's uint64_t nanoseconds since epoch
+	  // Either way this duration_cast will do the right thing
+	  auto millis = sc::duration_cast<sc::milliseconds>(since_epoch);
+	  long now = millis.count(); // just like java (new Date()).getTime(); //является количеством миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
+	  return now;
+  }
 } // namespace Grasp

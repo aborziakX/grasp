@@ -6,14 +6,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>  /* defines FILENAME_MAX */
-#ifdef _WINDOWS
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#else
-#include <unistd.h>
-#define GetCurrentDir getcwd
-#define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
-#endif
 
 namespace Grasp {
     bool IsValid(const char * val)

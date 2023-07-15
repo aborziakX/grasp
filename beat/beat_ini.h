@@ -173,13 +173,13 @@ public:
 
   void AddGeOb(GeOb* cub3); /** создать новый физ.объект и связать с геом. */
   TMolecule * FindMolecule(int index); /** найти физ.объект по индексу */
+  const char* IniFindValue(const char* key);
 
 protected:
 	void Defaults();
 	void LoadDialogs();
 	int IniParse(const char* fname);
 	void IniUnload(); /** очистка структур */
-	const char* IniFindValue(const char* key);
 	const char* IniFindValuePos(const char* key, int& npos);
 	void SaveMol(std::wofstream& out, TMolecule* mol);
 	void SaveMolEx(std::wofstream& out, TMolecule* mol, const char* geom_record);

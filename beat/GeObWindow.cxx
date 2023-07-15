@@ -228,7 +228,10 @@ void GeObWindow::Draw() {
         gl_color(FL_GRAY);
         glDisable(GL_DEPTH_TEST);
         gl_font(FL_HELVETICA_BOLD, 16);
-        gl_draw("Beat", -4.5f, -4.5f);
+        char buf[33];
+        int sz = 33;// sizeof(buf)=8;
+        snprintf(buf, sz, "Beat fps %d", fps);
+        gl_draw(buf, -4.5f, -4.5f);
         glEnable(GL_DEPTH_TEST);
     }
 

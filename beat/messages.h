@@ -3,6 +3,7 @@
 
 #ifdef RUSSIAN
 
+#define PROG_TITLE u8"Препроцессор Beat"
 #define MES_SELECT_TEMPL u8"Выбор шаблона проекта"
 #define MES_SELECT_FILE u8"Выбор файла проекта"
 #define MES_BTT_FILTER u8"Bpt Файлы\t*.btt"
@@ -11,6 +12,7 @@
 
 #else
 
+#define PROG_TITLE u8"Preprocessor Beat"
 #define MES_SELECT_TEMPL u8"Select template file"
 #define MES_SELECT_FILE u8"Select project file"
 #define MES_BTT_FILTER u8"Bpt Files\t*.btt"

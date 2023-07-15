@@ -40,3 +40,4 @@ gadget=2,2.5,0,0.2,0.2,0.2,3,15580947,0,0,0,1000,293,4,gid_6
 geom_header=[Geometry]
 geom_record={geom_type}{gid}={x};{y};{z};{dx};{dy};{dz};{side};{clr};{speedX};{speedY};{speedZ};{mass};{temperature};{material}
 geom_features=features=geom_type,x,y,z,dx,dy,dz,side,clr,
+model=z-sin

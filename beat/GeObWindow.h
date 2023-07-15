@@ -276,6 +276,7 @@ public:
   void ClearFacets();
 
   int wire = 0;
+  int fps = 0;
   Fl_Glut_Window* win_glut = NULL;
 
 protected:

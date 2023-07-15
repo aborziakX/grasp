@@ -32,3 +32,4 @@ nGK = 1 |int {0,5} |задает тип реконструкции, 0 – мет
 geom_header=[Geometry]
 geom_record={geom_type};{x};{y};{z};{dx};{dy};{dz};{side};{clr};{speedX};{speedY};{speedZ};{mass};{temperature};{material}
 geom_features=features=geom_type,x,y,z,dx,dy,dz,side,clr,
+model=

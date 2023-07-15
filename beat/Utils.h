@@ -17,8 +17,20 @@
 
 #include "GeObWindow.h"
 
-#ifndef _WINDOWS
+#ifdef _WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
 #define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
+
+#ifndef errno_t
+#define errno_t int
+#endif
+
+errno_t strcpy_s(char* dst, size_t size, const char* src);
+
 #endif
 
 using namespace std;
@@ -68,6 +80,12 @@ public:
   */
   static void split2vector(char* msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart = true);
   static void split2vector(string& msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart = true);
+
+  /** 
+  количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
+  just like java (new Date()).getTime();
+  */
+  static long getTime();
 
 protected:
 

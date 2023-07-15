@@ -23,14 +23,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>  /* defines FILENAME_MAX */
-#ifdef _WINDOWS
-#include <direct.h>
-#define GetCurrentDir _getcwd
-#else
-#include <unistd.h>
-#define GetCurrentDir getcwd
-#define sprintf_s(buf, ...) snprintf((buf), sizeof(buf), __VA_ARGS__)
-#endif
 
 #include "GeObWindow.h"
 #include "Cube.h"
@@ -43,6 +35,7 @@
 #include "Dialogs.h"
 #include "beat_ini.h"
 #include "Utils.h"
+#include "Models.h"
 
 #define RUSSIAN
 #include "messages.h"
@@ -61,7 +54,12 @@ Fl_Scroll* scroll;
 GeObWindow* geob_win = NULL; // список геометрических объектов
 GeOb* geobCurrent = NULL; // текущий объект
 Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в LB
+
 BeatIni* beatIni = NULL; // загрузчик ini
+long now = Utils::getTime(); // количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
+string model(""); // "scale-sin" "z-sin" // модель
+bool bRunModel = false; // Старт/стоп модель
+int fps = 0; // число фреймов в секунду
 
 // диалоги
 Pass_Window* pass_window = NULL;
@@ -191,6 +189,15 @@ void file_open_cb(Fl_Widget*, void*)
     PrepareBeatDialog();
     FillListBox();
 
+    // заголовок окна
+    char buf[330];
+    snprintf(buf, 330, "%s / %s", PROG_TITLE, sIniFile.c_str());
+    form->copy_label(buf);
+
+    // модель
+    const char* modNew = beatIni->IniFindValue("model");    
+    model = modNew != NULL ? modNew : "";
+
     //text2->value(beatIni->lstVal[1]->c_str()); //test
     
     //beatIni->ReadUtf8UnicodeFile(sIniFile.c_str());  //test  
@@ -226,6 +233,15 @@ void file_create_cb(Fl_Widget*, void*)
     PrepareBeatDialog();
     FillListBox();
     beatIni->filename = ""; // empty
+
+    // заголовок окна
+    char buf[330];
+    snprintf(buf, 330, "%s / %s", PROG_TITLE, sIniFile.c_str());
+    form->copy_label(buf);
+
+    // модель
+    const char* modNew = beatIni->IniFindValue("model");
+    model = modNew != NULL ? modNew : "";
 }
 
 // Сохранить как Проект
@@ -235,8 +251,17 @@ void file_save_as_cb(Fl_Widget*, void*)
     string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER, true);
     if (sIniFile.empty()) return;
 
-    //fl_message(sIniFile.c_str());
     beatIni->Save(sIniFile.c_str());
+    beatIni->filename = sIniFile.c_str();
+
+    // заголовок окна
+    char buf[330];
+    snprintf(buf, 330, "%s / %s", PROG_TITLE, sIniFile.c_str());
+    form->copy_label(buf);
+
+    // модель
+    const char* modNew = beatIni->IniFindValue("model");
+    model = modNew != NULL ? modNew : "";
 }
 
 // Генерировать ini
@@ -654,6 +679,12 @@ void exit_cb(Fl_Widget *, void *)
   done = 1;
 }
 
+// Старт - стоп модель
+void model_toggle_cb(Fl_Widget*, void*)
+{
+    bRunModel = !bRunModel;
+}
+
 void UpdatePosInfo()
 {
     if (done == 1) return;
@@ -837,6 +868,7 @@ void MakeForm(const char *name)
   menubar->add(u8"Проект/Сохранить", FL_COMMAND + 's', file_save_cb);
   menubar->add(u8"Проект/Сохранить как", FL_COMMAND + 'a', file_save_as_cb);
   menubar->add(u8"Проект/Генерировать ini", FL_COMMAND + 'g', file_gener_cb);
+  menubar->add(u8"Проект/Старт-стоп модель", FL_COMMAND + 'm', model_toggle_cb);
   menubar->add(u8"Проект/Выход", FL_COMMAND + 'q', exit_cb);
 
   menubar->add(u8"Камера/Камера XYZ", FL_COMMAND + 'x', camera_xyz_cb);
@@ -980,7 +1012,7 @@ int main(int argc, char **argv)
   geob_win = new GeObWindow();
 
   // создаем главное окно и виджеты
-  MakeForm(u8"Beat - препроцессор");
+  MakeForm(PROG_TITLE);
 
   // создаем главное Fl_Glut_Window* glut_win_main
   MakeGlWindow(bDouble);
@@ -1034,6 +1066,7 @@ int main(int argc, char **argv)
   FillListBox();
 
   //аналог glutMainLoop(); или Fl::run
+  int cursec = 0, tempsec;
   for (;;) 
   {
     if (form->visible()) 
@@ -1057,7 +1090,20 @@ int main(int argc, char **argv)
     if (done)
       break; // 'exit button' была нажата
 
-    Fl::wait(0.01); // заснуть в секундах = 10 ms
+    now = Utils::getTime();
+    tempsec = now / 1000;
+    if (cursec != tempsec)
+    {
+        cursec = tempsec;
+        geob_win->fps = fps;
+        fps = 0;
+    }
+    else fps++;
+
+    if(bRunModel)
+      Models::Run(model, geob_win, now);
+
+    Fl::wait(0.001); // заснуть в секундах = 1 ms
   }
 
   // удалить загрузчик ini

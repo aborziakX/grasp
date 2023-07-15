@@ -27,40 +27,43 @@
 //  |______________________________________|
 //
 int main4(int argc, char* argv[]) {
-    Fl::scheme("gtk+");
-    Fl_Window* win = new Fl_Window(500, 200, u8"Пример с TAB");
+    Fl_Window* win = new Fl_Window(400, 350, u8"Пример с TAB");
     {
         // создать tab widget
-        Fl_Tabs* tabs = new Fl_Tabs(10, 10, 500 - 20, 200 - 20);
+        Fl_Tabs* tabs = new Fl_Tabs(10, 10, 400 - 20, 350 - 20);
         {
-            // добавить "Aaa" TAB
+            // добавить "Кнопки" TAB
             // Мы делаем это, добавляя дочернюю группу к виджету вкладки.
             // Метка дочерней группы определяет метку вкладки.
             //
-            Fl_Group* aaa = new Fl_Group(10, 35, 500 - 20, 200 - 45, "Aaa");
+            Fl_Group* aaa = new Fl_Group(10, 35, 400 - 20, 350 - 45, u8"Кнопки");
             {
                 // Поместите несколько разных кнопок в группу, которая будет отображаться
                 // когда вкладка выбрана.
                 Fl_Button* b1 = new Fl_Button(50, 60, 90, 25, "Button A1"); b1->color(88 + 1);
-                Fl_Button* b2 = new Fl_Button(50, 90, 90, 25, "Button A2"); b2->color(88 + 2);
-                Fl_Button* b3 = new Fl_Button(50, 120, 90, 25, "Button A3"); b3->color(88 + 3);
+                Fl_Button* b2 = new Fl_Button(50, 90, 90, 25, "Button A2"); b2->color(88 + 4);
+                Fl_Button* b3 = new Fl_Button(50, 120, 90, 25, "Button A3"); b3->color(88 - 3);
             }
             aaa->end();
 
-            // добавить "Bbb" TAB
-            Fl_Group* bbb = new Fl_Group(10, 35, 500 - 10, 200 - 35, "Bbb");
+            // добавить 2-й TAB
+            Fl_Group* bbb = new Fl_Group(10, 35, 400 - 10, 350 - 35, u8"FLTK палитра");
             {
-                // Поместите несколько разных кнопок в группу, которая будет отображаться
+                // Поместите несколько боксов в группу, которая будет отображаться
                 // когда вкладка выбрана.
-                Fl_Button* b1 = new Fl_Button(50, 60, 90, 25, "Button B1"); b1->color(56);
-                Fl_Button* b2 = new Fl_Button(150, 60, 90, 25, "Button B2"); b2->color(88);
-                Fl_Button* b3 = new Fl_Button(250, 60, 90, 25, "Button B3"); b3->color(63);
-                Fl_Button* b4 = new Fl_Button(50, 90, 90, 25, "Button B4"); b4->color(95);
-                Fl_Button* b5 = new Fl_Button(150, 90, 90, 25, "Button B5"); b5->color(216);
-                Fl_Button* b6 = new Fl_Button(250, 90, 90, 25, "Button B6"); b6->color(248);
-                Fl_Button* b7 = new Fl_Button(50, 120, 90, 25, "Button B7"); b7->color(223);
-                Fl_Button* b8 = new Fl_Button(150, 120, 90, 25, "Button B8"); b8->color(255);
-                Fl_Button* b9 = new Fl_Button(250, 120, 90, 25, "Button B9"); b9->color(72);
+                int x = 40, y = 30;
+                for (int i = 0; i < 200; i++)
+                {
+                    if (i % 16 == 0)
+                    { // по 16 в ряд
+                        x = 40;
+                        y += 20;
+                    }
+                    Fl_Box* b1 = new Fl_Box(x, y, 20, 20);
+                    b1->box(FL_FLAT_BOX); // стиль-плоский бокс
+                    b1->color(56 + i);
+                    x += 20;
+                }
             }
             bbb->end();
         }
