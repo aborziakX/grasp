@@ -85,7 +85,7 @@ public:
   количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
   just like java (new Date()).getTime();
   */
-  static long getTime();
+  static unsigned long getTime();
 
 protected:
 

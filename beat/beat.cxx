@@ -56,7 +56,7 @@ GeOb* geobCurrent = NULL; // текущий объект
 Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в LB
 
 BeatIni* beatIni = NULL; // загрузчик ini
-long now = Utils::getTime(); // количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
+unsigned long now = Utils::getTime(); // количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
 string model(""); // "scale-sin" "z-sin" // модель
 bool bRunModel = false; // Старт/стоп модель
 int fps = 0; // число фреймов в секунду
@@ -175,6 +175,7 @@ void file_open_cb(Fl_Widget*, void*)
 {
     string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER);
     if (sIniFile.empty()) return;
+    bRunModel = false;
 
     //fl_message(sIniFile.c_str());
     if (beatIni == NULL)
@@ -222,6 +223,7 @@ void file_create_cb(Fl_Widget*, void*)
 {
     string sIniFile = file_open_dialog(MES_SELECT_TEMPL, MES_BTT_FILTER);
     if (sIniFile.empty()) return;
+    bRunModel = false;
 
     if (beatIni == NULL)
     {
@@ -250,6 +252,7 @@ void file_save_as_cb(Fl_Widget*, void*)
     if (!IsReady()) return;
     string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_BPJ_FILTER, true);
     if (sIniFile.empty()) return;
+    bRunModel = false;
 
     beatIni->Save(sIniFile.c_str());
     beatIni->filename = sIniFile.c_str();
@@ -683,6 +686,7 @@ void exit_cb(Fl_Widget *, void *)
 void model_toggle_cb(Fl_Widget*, void*)
 {
     bRunModel = !bRunModel;
+    Models::prevtime = Utils::getTime();
 }
 
 void UpdatePosInfo()
@@ -1066,7 +1070,7 @@ int main(int argc, char **argv)
   FillListBox();
 
   //аналог glutMainLoop(); или Fl::run
-  int cursec = 0, tempsec;
+  unsigned long cursec = 0, tempsec;
   for (;;) 
   {
     if (form->visible()) 
@@ -1101,7 +1105,7 @@ int main(int argc, char **argv)
     else fps++;
 
     if(bRunModel)
-      Models::Run(model, geob_win, now);
+      Models::Run(model, geob_win, now, beatIni);
 
     Fl::wait(0.001); // заснуть в секундах = 1 ms
   }

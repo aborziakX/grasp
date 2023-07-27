@@ -400,6 +400,16 @@ namespace Grasp {
 	  return NULL;
   }
 
+  // найти физ.свойство по индексу и ключу
+  TParam* BeatIni::FindMoleculeFeature(int geob_id, const char* key)
+  {
+	  TMolecule* mol = FindMolecule(geob_id);
+	  if (mol == NULL) return NULL;
+	  TParam* p = mol->FeatureByName(key);
+	  return p;
+  }
+
+
   // сохранить проект в файл
   bool BeatIni::Save(const char* fname)
   {

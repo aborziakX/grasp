@@ -222,7 +222,7 @@ namespace Grasp {
   }
 
   // количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
-  long Utils::getTime()
+  unsigned long Utils::getTime()
   {
 	  namespace sc = std::chrono;
 	  auto time = sc::system_clock::now(); // текущее время
@@ -231,7 +231,7 @@ namespace Grasp {
 	  // I think it's uint64_t nanoseconds since epoch
 	  // Either way this duration_cast will do the right thing
 	  auto millis = sc::duration_cast<sc::milliseconds>(since_epoch);
-	  long now = millis.count(); // just like java (new Date()).getTime(); //является количеством миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
+	  unsigned long now = millis.count(); // just like java (new Date()).getTime(); //является количеством миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
 	  return now;
   }
 } // namespace Grasp

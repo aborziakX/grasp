@@ -173,7 +173,9 @@ public:
 
   void AddGeOb(GeOb* cub3); /** создать новый физ.объект и связать с геом. */
   TMolecule * FindMolecule(int index); /** найти физ.объект по индексу */
-  const char* IniFindValue(const char* key);
+  const char* IniFindValue(const char* key); /** найти значение ключа */
+
+  TParam* FindMoleculeFeature(int geob_id, const char* key); /** найти физ.свойство по индексу и ключу */
 
 protected:
 	void Defaults();

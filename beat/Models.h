@@ -16,6 +16,8 @@
 #include <errno.h>
 
 #include "GeObWindow.h"
+#include "Utils.h"
+#include "beat_ini.h"
 
 using namespace std;
 
@@ -32,14 +34,19 @@ public:
 
   virtual ~Models();
 
+  static unsigned long prevtime; /** количество миллисекунд, static для простоты */
+
   /** модифицирует список объектов согласно указанной модели model */
-  static int Run(string & model, GeObWindow* gewin, long now);
+  static int Run(string & model, GeObWindow* gewin, unsigned long now, BeatIni * bini);
 
   /** модифицирует список объектов согласно модели "z-sin" */
-  static int RunZSin(GeObWindow* gewin, long now);
+  static int RunZSin(GeObWindow* gewin, unsigned long now, BeatIni* bini);
 
   /** модифицирует список объектов согласно модели "scale-sin" */
-  static int RunScaleSin(GeObWindow* gewin, long now);
+  static int RunScaleSin(GeObWindow* gewin, unsigned long now, BeatIni* bini);
+
+  /** модифицирует список объектов согласно модели "gravity" */
+  static int RunGravity(GeObWindow* gewin, unsigned long now, BeatIni* bini);
 
 protected:
 
