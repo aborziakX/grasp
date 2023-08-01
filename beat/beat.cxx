@@ -274,8 +274,17 @@ void file_gener_cb(Fl_Widget*, void*)
     string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_INI_FILTER, true);
     if (sIniFile.empty()) return;
 
-    //fl_message(file_gener_cb.c_str());
     beatIni->GenerateIni(sIniFile.c_str());
+}
+
+// Генерировать vtp
+void vtp_gener_cb(Fl_Widget*, void*)
+{
+    if (!IsReady()) return;
+    string sIniFile = file_open_dialog(MES_SELECT_FILE, MES_VTP_FILTER, true);
+    if (sIniFile.empty()) return;
+
+    beatIni->GenerateVtp(sIniFile.c_str());
 }
 
 // Геометрия/Изменить
@@ -872,6 +881,7 @@ void MakeForm(const char *name)
   menubar->add(u8"Проект/Сохранить", FL_COMMAND + 's', file_save_cb);
   menubar->add(u8"Проект/Сохранить как", FL_COMMAND + 'a', file_save_as_cb);
   menubar->add(u8"Проект/Генерировать ini", FL_COMMAND + 'g', file_gener_cb);
+  menubar->add(u8"Проект/Генерировать vtp", FL_COMMAND + 'v', vtp_gener_cb);
   menubar->add(u8"Проект/Старт-стоп модель", FL_COMMAND + 'm', model_toggle_cb);
   menubar->add(u8"Проект/Выход", FL_COMMAND + 'q', exit_cb);
 

@@ -9,6 +9,7 @@
 #define MES_BTT_FILTER u8"Bpt Файлы\t*.btt"
 #define MES_BPJ_FILTER u8"Bpj Файлы\t*.bpj"
 #define MES_INI_FILTER u8"Ini Файлы\t*.ini"
+#define MES_VTP_FILTER u8"Vtp Файлы\t*.vtp"
 
 #else
 
@@ -18,6 +19,7 @@
 #define MES_BTT_FILTER u8"Bpt Files\t*.btt"
 #define MES_BPJ_FILTER u8"Bpj Files\t*.bpj"
 #define MES_INI_FILTER u8"Ini Files\t*.ini"
+#define MES_VTP_FILTER u8"Vtp Files\t*.vtp"
 
 #endif
 

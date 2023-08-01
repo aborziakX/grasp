@@ -167,6 +167,10 @@ public:
   генерировать ini-файл из проекта
   */
   bool GenerateIni(const char* fname);
+  /**
+  генерировать vtp-файл из проекта
+  */
+  bool GenerateVtp(const char* fname);
 
   void InitFeatures(TMolecule* mol); /** проинициализировать физ.объект */
   void SetFeature(TMolecule* mol, int index, string& val); /** установить свойство */

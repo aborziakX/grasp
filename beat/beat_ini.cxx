@@ -409,7 +409,6 @@ namespace Grasp {
 	  return p;
   }
 
-
   // сохранить проект в файл
   bool BeatIni::Save(const char* fname)
   {
@@ -751,6 +750,123 @@ namespace Grasp {
 		  Utils::utf8_to_wstring(par->PtypeToString()) <<
 		  Utils::utf8_to_wstring(ss.str()) << "|" <<
 		  Utils::utf8_to_wstring(par->pcomment) << endl;
+  }
+
+  // генерировать vpt-файл из проекта
+  bool BeatIni::GenerateVtp(const char* fname)
+  {
+	  bool rc = true;
+	  std::string qq;
+	  std::stringstream ss, ww;
+	  std::wofstream outFile;
+	  outFile.open(fname, std::ios::out);
+	  std::locale loc(std::locale::classic(), new std::codecvt_utf8<wchar_t>);
+	  outFile.imbue(loc);
+
+	  int len = (int)TMoleculeList.size();
+	  int nPoint = 0, nCell = 0, np;
+	  for (int m = 0; m < len; m++)
+	  {
+		  TMolecule* mol = TMoleculeList[m];
+		  if (mol == NULL) continue;
+		  GeOb* geob = geob_win->FindObjById(mol->geob_id);
+		  if (geob == NULL) continue;
+
+		  for (int i = 0; i < geob->GetSize(); i++) {
+			  //цикл по граням
+			  Facet3* f = geob->GetFacet(i);
+			  if (f == NULL) continue;
+
+			  nCell++;
+			  nPoint += f->GetSize();
+		  }
+	  }
+
+	  // VTK's default Lookup Table is rainbow - from red to blue
+
+	  outFile << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << endl;
+	  outFile << "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\" header_type=\"UInt32\" compressor=\"vtkZLibDataCompressor\">" << endl;
+	  outFile << "<PolyData>" << endl;
+	  outFile << "<Piece NumberOfPoints=\"" << nPoint << 
+		  "\" NumberOfVerts=\"0\" NumberOfLines=\"0\" NumberOfStrips=\"0\" NumberOfPolys=\"" << nCell << "\">";
+
+	  outFile << "<Points>" << endl;
+	  outFile << "<DataArray type=\"Float32\" Name=\"Points\" NumberOfComponents=\"3\" format=\"ascii\">" << endl;
+	  for (int m = 0; m < len; m++)
+	  {
+		  TMolecule* mol = TMoleculeList[m];
+		  if (mol == NULL) continue;
+		  GeOb* geob = geob_win->FindObjById(mol->geob_id);
+		  if (geob == NULL) continue;
+
+		  for (int i = 0; i < geob->GetSize(); i++) {
+			  //цикл по граням
+			  Facet3* f = geob->GetFacet(i);
+			  if (f == NULL) continue;
+
+			  np = f->GetSize();
+			  for (int j = 0; j < np; j++)
+			  {
+				  Vec3 * v = f->GetPoint(j);
+				  outFile << v->GetX() << " " << v->GetY() << " " << v->GetZ() << " " << endl;
+			  }
+			  outFile << endl;
+		  }
+	  }
+	  outFile << "</DataArray>" << endl;
+	  outFile << "</Points>" << endl;
+
+	  outFile << "<Polys>" << endl;
+	  outFile << "<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">" << endl;
+	  nPoint = 0;
+	  ss.clear();
+	  ww.clear();
+	  for (int m = 0; m < len; m++)
+	  {
+		  TMolecule* mol = TMoleculeList[m];
+		  if (mol == NULL) continue;
+		  GeOb* geob = geob_win->FindObjById(mol->geob_id);
+		  if (geob == NULL) continue;
+
+		  for (int i = 0; i < geob->GetSize(); i++) {
+			  //цикл по граням
+			  Facet3* f = geob->GetFacet(i);
+			  if (f == NULL) continue;
+
+			  np = f->GetSize();
+			  for (int j = 0; j < np; j++)
+			  {
+				  outFile << nPoint << " ";
+				  nPoint++;
+			  }
+			  outFile << endl;
+
+			  ss << nPoint << " ";
+			  if (i % 5 == 4) ss << endl;
+
+			  ww << (nPoint % 255) << " ";
+			  if (i % 5 == 4) ww << endl;
+		  }
+	  }
+	  outFile << "</DataArray>" << endl;
+	  outFile << "<DataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\">" << endl;
+	  qq = ss.str();
+	  outFile << qq.c_str();
+	  outFile << "</DataArray>" << endl;
+	  outFile << "</Polys>" << endl;
+
+	  outFile << "<CellData>" << endl;
+	  outFile << "<DataArray type=\"Int32\" Name=\"colour\" format=\"ascii\">" << endl;
+	  qq = ww.str();
+	  outFile << qq.c_str();
+	  outFile << "</DataArray>" << endl;
+	  outFile << "</CellData>" << endl;
+
+	  outFile << "</Piece>" << endl;
+	  outFile << "</PolyData>" << endl;
+	  outFile << "</VTKFile>" << endl;
+	  outFile.close();
+	  return rc;
   }
 
 } // namespace Grasp
