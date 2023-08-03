@@ -61,7 +61,7 @@ GeOb* GeObWindow::CreateObj(geom_type_enum geom_type, double x_0, double y_0, do
         
     if( geom_type == geom_type_enum::GO_SPHERE)
     {  // sphere
-        obj = new Sphere();
+        obj = new Sphere(nSide);
         obj->Scale(dx, dy, dz);
         obj->Translate(x_0, y_0, z_0);
     }

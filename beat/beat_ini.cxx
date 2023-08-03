@@ -132,6 +132,16 @@ namespace Grasp {
 	  }
 	  Utils::split2vector(NULL, ',', lst); //чистка
 
+	  // загрузить позицию камеры
+	  double camera_distance = 9.0, camera_azimut = 0.7, camera_elevation = 0.5;
+	  const char* sKey = IniFindValue("camera_distance");
+	  if (sKey != NULL) camera_distance = atof(sKey);
+	  sKey = IniFindValue("camera_azimut");
+	  if (sKey != NULL) camera_azimut = atof(sKey);
+	  sKey = IniFindValue("camera_elevation");
+	  if (sKey != NULL) camera_elevation = atof(sKey);
+	  geob_win->SetPolar(camera_distance, camera_azimut, camera_elevation);
+
 	  return rc;
   }
 
@@ -467,9 +477,18 @@ namespace Grasp {
 	  {
 		  for (int m = npos + 1; m < lstKey.size(); m++)
 		  {
+			  if (*lstKey[m] == "camera_distance") continue;
+			  if (*lstKey[m] == "camera_azimut") continue;
+			  if (*lstKey[m] == "camera_elevation") continue;
 			  outFile << Utils::utf8_to_wstring(*lstKey[m]) << "=" << Utils::utf8_to_wstring(*lstVal[m]) << endl;
 		  }
 	  }
+	  // сохранить камеру
+	  double camera_distance = 9.0, camera_azimut = 0.7, camera_elevation = 0.5;
+	  geob_win->GetPolar(camera_distance, camera_azimut, camera_elevation);
+	  outFile << "camera_distance=" << camera_distance << endl;
+	  outFile << "camera_azimut=" << camera_azimut << endl;
+	  outFile << "camera_elevation=" << camera_elevation << endl;
 
 	  outFile.close();
 	  return rc;

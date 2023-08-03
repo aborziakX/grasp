@@ -14,17 +14,20 @@ namespace Grasp {
   // модифицирует список объектов согласно указанной модели model
   int Models::Run(string& model, GeObWindow* gewin, unsigned long now, BeatIni* bini)
   {
-	  if (model == "z-sin") return RunZSin(gewin, now, bini);
-	  else if (model == "scale-sin") return RunScaleSin(gewin, now, bini);
-	  else if (model == "gravity") return RunGravity(gewin, now, bini);
+	  int rc = 0;
+	  if (model == "z-sin") rc = RunZSin(gewin, now, bini);
+	  else if (model == "scale-sin") rc = RunScaleSin(gewin, now, bini);
+	  else if (model == "gravity") rc = RunGravity(gewin, now, bini);
 	  prevtime = now;
-	  return 0; 
+	  return rc; 
   }
 
   // модифицирует список объектов согласно модели "z-sin"
   int Models::RunZSin(GeObWindow* gewin, unsigned long now, BeatIni* bini)
   {
-	  double cur = 0.001 * (now % 2000 - 1000) * MY_PI;
+	  // цикл за 10 секунд = 10000 ms
+	  int cycleMSec = 10000;
+	  double cur = ((now % cycleMSec) * MY_2PI) / cycleMSec;
 	  double x, y, z;
 
 	  int sz = gewin->GetSize();
@@ -34,7 +37,13 @@ namespace Grasp {
 		  if (geob == NULL) continue;
 
 		  geob->GetShift(x, y, z);
-		  geob->Translate(x, y, sin(cur));
+		  z = sin(cur) * 3;
+		  geob->Translate(x, y, z);
+
+		  /*std::wstringstream ss;
+		  unsigned long dif = now - prevtime;
+		  ss << now << ", dif=" << dif << ", cur=" << cur << ", z=" << z;
+		  Utils::ErrorLog(ss.str());*/
 	  }
 	  return 1;
   }
@@ -42,7 +51,9 @@ namespace Grasp {
   // модифицирует список объектов согласно модели "scale-sin"
   int Models::RunScaleSin(GeObWindow* gewin, unsigned long now, BeatIni* bini)
   {
-	  double cur = 0.001 * (now % 2000 - 1000) * MY_PI;
+	  // цикл за 10 секунд = 10000 ms
+	  int cycleMSec = 10000;
+	  double cur = ((now % cycleMSec) * MY_2PI) / cycleMSec;
 	  double x, y, z;
 
 	  int sz = gewin->GetSize();
@@ -62,7 +73,7 @@ namespace Grasp {
   int Models::RunGravity(GeObWindow* gewin, unsigned long now, BeatIni* bini)
   {
 	  double g = 9.8; // ускорение свободного падения в м/сек**2
-	  double dt = ((now - prevtime) / 50000.0); // шаг времени в сек.
+	  double dt = ((now - prevtime) / 1000.0); // шаг времени в сек.
 	  double x, y, z, zNew = 0;
 	  char buf[33];
 	  int sz = gewin->GetSize();
@@ -77,17 +88,22 @@ namespace Grasp {
 			  double speedZ = atof(par->pcurr.c_str()); // скорость
 			  geob->GetShift(x, y, z);
 			  zNew = z + speedZ * dt; // новая z-позиция
-			  if (zNew < 0)
+			  if (zNew <= 0)
 			  { // отскок
-				  zNew = fabs(zNew * 0.1);
+				  zNew = fabs(zNew);
 				  speedZ = fabs(speedZ);
 			  }
 			  speedZ -= g * dt; // новая скорость
 			  sprintf_s(buf, "%.6f", speedZ);
 			  par->pcurr = buf; // запомнить
 			  geob->Translate(x, y, zNew);
-			  if(ge_id == 0)
-			  cout << ge_id << "," << x << "," << y << ",z=" << z << ",zn=" << zNew << "," << speedZ << "," << dt << endl;
+			  /*if (ge_id == 0)
+			  {
+				  std::wstringstream ss;
+				  unsigned long dif = now - prevtime;
+				  ss << now << ", dif=" << dif << ", ge_id=" << ge_id << ",x=" << x << ",y=" << y << ",z=" << z << ",zn=" << zNew << ",speedZ" << speedZ << ",dt" << dt;
+				  Utils::ErrorLog(ss.str());
+			  }*/
 		  }
 	  }
 	  return 1;
