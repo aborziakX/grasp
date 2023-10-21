@@ -26,10 +26,12 @@ project(beat)
 if (WIN32)
   set(FLTK_DIR "C:/fltk-1.4/build" CACHE STRING 
     "FLTK binary folder with FLTKConfig.cmake")
+  set(BOOST_INCLUDE_DIRS "C:/boost/boost_1_82_0" )
 endif (WIN32)
 if (UNIX)
   set(FLTK_DIR "/home/andrey/fltk-1.4/build/" CACHE STRING 
     "FLTK binary folder with FLTKConfig.cmake")
+  set(BOOST_INCLUDE_DIRS "/home/andrey/boost/boost_1_82_0" )
 endif (UNIX)
 
 find_package(FLTK REQUIRED NO_MODULE)
@@ -39,13 +41,14 @@ message(STATUS "FLTK_DIR                    = ${FLTK_DIR}")
 message(STATUS "FLTK_FOUND                  = ${FLTK_FOUND}")
 message(STATUS "FLTK_COMMIT                 = '${FLTK_COMMIT}'")
 message(STATUS "FLTK_INCLUDE_DIRS           = ${FLTK_INCLUDE_DIRS}")
+message(STATUS "BOOST_INCLUDE_DIRS           = ${BOOST_INCLUDE_DIRS}")
 
-add_executable(beat WIN32 MACOSX_BUNDLE "beat.cxx;GeObWindow.cxx;GeOb.cxx;Cube.cxx;Vec3.cxx;Cyl.cxx;Lines.cxx;Dialogs.cxx;beat_ini.cxx;Cone.cxx;Sphere.cxx;Gadget.cxx;Utils.cxx;Poly.cxx;Models.cxx")
+add_executable(beat WIN32 MACOSX_BUNDLE "beat.cxx;GeObWindow.cxx;GeOb.cxx;Cube.cxx;Vec3.cxx;Cyl.cxx;Lines.cxx;Dialogs.cxx;beat_ini.cxx;Cone.cxx;Sphere.cxx;Gadget.cxx;Utils.cxx;Poly.cxx;Models.cxx;Rest.cpp")
 if (APPLE)
   target_link_libraries(beat "-framework cocoa")
 endif (APPLE)
 
-target_include_directories(beat PUBLIC ${FLTK_INCLUDE_DIRS})
+target_include_directories(beat PUBLIC ${FLTK_INCLUDE_DIRS};${BOOST_INCLUDE_DIRS})
 
 target_link_libraries(beat "fltk_gl;fltk;${OPENGL_LIBRARIES}")
 

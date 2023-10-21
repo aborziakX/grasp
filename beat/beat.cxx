@@ -36,6 +36,7 @@
 #include "beat_ini.h"
 #include "Utils.h"
 #include "Models.h"
+#include "Rest.h"
 
 #define RUSSIAN
 #include "messages.h"
@@ -698,6 +699,14 @@ void model_toggle_cb(Fl_Widget*, void*)
     Models::prevtime = Utils::getTime();
 }
 
+// test rest
+void rest_cb(Fl_Widget*, void*)
+{
+    string s = Rest::Get("www.pvobr.ru", "80", "/");
+    cout << s << endl;
+}
+
+
 void UpdatePosInfo()
 {
     if (done == 1) return;
@@ -883,6 +892,7 @@ void MakeForm(const char *name)
   menubar->add(u8"Проект/Генерировать ini", FL_COMMAND + 'g', file_gener_cb);
   menubar->add(u8"Проект/Генерировать vtp", FL_COMMAND + 'v', vtp_gener_cb);
   menubar->add(u8"Проект/Старт-стоп модель", FL_COMMAND + 'm', model_toggle_cb);
+  menubar->add(u8"Проект/Test Rest", FL_COMMAND + 'z', rest_cb);
   menubar->add(u8"Проект/Выход", FL_COMMAND + 'q', exit_cb);
 
   menubar->add(u8"Камера/Камера XYZ", FL_COMMAND + 'x', camera_xyz_cb);
