@@ -28,10 +28,41 @@ cmake ..
 ===============
 
 Linux
-команды аналогичны, 
-CMakeLists.txt удалить
-Linux-C-MakeLists.txt переиеновать в CMakeLists.txt
+команды аналогичны,
+
+cd ~
+mkdir develop
+mkdir fltk-1.4
+git clone https://github.com/fltk/fltk fltk-1.4
+cd fltk-1.4
+mkdir build
+cd build
+cmake ..
+
 после cmake запускать для построения make .
+
+Далее установка grasp
+
+cd ~/develop
+mkdir grasp
+git clone https://github.com/aborziakX/grasp.git grasp
+cd beat
+mkdir build
+cd build
+
+CMakeLists.txt редактировать
+if (UNIX)
+  set(FLTK_DIR "~/develop/fltk-1.4/build/" CACHE STRING 
+    "FLTK binary folder with FLTKConfig.cmake")
+  #set(BOOST_INCLUDE_DIRS "/home/andrey/boost/boost_1_82_0" )
+endif (UNIX)
+
+cmake ..
+
+после cmake запускать для построения make .
+
+
+
 
 =============== beat
 В папке beat имеется файл beat.btt. Его можно использовать для команды меню "Проект/Создать".
