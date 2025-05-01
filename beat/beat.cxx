@@ -50,11 +50,11 @@ Fl_Button *btnApply; // кнопка
 // ввод текста
 //Fl_Input *inXTop, *inYTop, *inZTop, * inXCam, * inYCam, * inZCam, * inXLook, * inYLook, * inZLook;
 Fl_Multiline_Output* text2; // окно вывода текста
-Fl_Pack* pack;
-Fl_Scroll* scroll;
+Fl_Pack* pack; // пара pack
+Fl_Scroll* scroll; // и scroll используется для создания listbox объектов геометрии с полосой прокрутки
 GeObWindow* geob_win = NULL; // список геометрических объектов
 GeOb* geobCurrent = NULL; // текущий объект
-Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в LB
+Fl_Widget* lbBtnCurrent = NULL; // текущая кнопка в listbox
 
 BeatIni* beatIni = NULL; // загрузчик ini
 unsigned long now = Utils::getTime(); // количество миллисекунд, прошедших с 1 января 1970 года 00:00:00 по UTC
@@ -63,12 +63,12 @@ bool bRunModel = false; // Старт/стоп модель
 int fps = 0; // число фреймов в секунду
 
 // диалоги
-Pass_Window* pass_window = NULL;
-AddCubeDialog* add_cube_dlg = NULL;
-CameraXyzDialog* camera_xyz_dlg = NULL;
-CameraSphDialog* camera_sph_dlg = NULL;
-PhysPropDialog* phys_dlg = NULL;
-BeatDialog* bt_dlg = NULL;
+Pass_Window* pass_window = NULL; // тестовый
+AddCubeDialog* add_cube_dlg = NULL; // создать/редактировать Куб и другие геметрические свойства
+CameraXyzDialog* camera_xyz_dlg = NULL; // камера в декартовых координатах
+CameraSphDialog* camera_sph_dlg = NULL; // камера в сферических координатах
+PhysPropDialog* phys_dlg = NULL; // физические свойства объекта
+BeatDialog* bt_dlg = NULL; // для выбора значений параметров
 
 // высота меню
 #define MENUBAR_H 25
@@ -78,12 +78,12 @@ BeatDialog* bt_dlg = NULL;
 #define MARGIN3 (MARGIN * 3)
 #define MARGIN4 (MARGIN * 4)
 
-char cCurrentPath[FILENAME_MAX]; // для текущей директории
+char cCurrentPath[FILENAME_MAX]; // путь к текущей папке
 
-void FillListBox();
-void bt_dlg_done_cb(Fl_Widget* bt, void* ud);
-void file_save_as_cb(Fl_Widget*, void*);
-void add_cube_done_cb(Fl_Widget*, void*);
+void FillListBox(); // заполнить listbox с объектами
+void bt_dlg_done_cb(Fl_Widget* bt, void* ud); // обработчик "диалог завершен"
+void file_save_as_cb(Fl_Widget*, void*); // обработчик завершения "сохранить файл"
+void add_cube_done_cb(Fl_Widget*, void*); // обработчик завершения "создать/редактировать Куб"
 
 // чтобы диалог запускаемый по нажатию кнопки стал popup, его надо проинициировать из меню
 void PrepareBeatDialog()
@@ -142,7 +142,7 @@ string file_open_dialog(const char * sTitle, const char * sFilter, bool bNew = f
     //return "";
 
     string sIniFile;
-    // создать "нативный быбор файла" диалог
+    // создать "нативный выбор файла"-диалог
     Fl_Native_File_Chooser native;
     native.title(sTitle);
     int t = bNew ? Fl_Native_File_Chooser::BROWSE_SAVE_FILE : // need this if file doesn't exist yet
@@ -863,7 +863,8 @@ int gl_h = 400; // высота GL окна
 void MakeForm(const char *name) 
 {
   int form_w = gl_w + ct_grp_w + MARGIN3; // ширина главного окна
-  int form_h = gl_h + MENUBAR_H + MARGIN2;           // высота главного окна
+  int form_h = gl_h + MENUBAR_H + MARGIN2; // высота главного окна
+  // XYWH - левая позиция, верхняя позиция, ширина, высота
   // XYWH'меню
   int me_bar_x = 0, 
       me_bar_y = 0, 
@@ -923,6 +924,7 @@ void MakeForm(const char *name)
   pack->box(FL_DOWN_FRAME);
   scroll->end();
 
+  // Инфо окно
   text2 = new Fl_Multiline_Output(ct_grp_x + MARGIN, ct_grp_h - MARGIN3, 200, 40, u8"Инфо окно");
   text2->value("");
   text2->align(FL_ALIGN_BOTTOM);
@@ -1025,11 +1027,13 @@ int main(int argc, char **argv)
 #endif
   Fl::use_high_res_GL(1);
   Fl::set_color(FL_FREE_COLOR, 255, 255, 0, 75);
+  // определить наличие "-double" в списке аргументов программы
   bool bDouble = false;
   for (int k = 1; k < argc; k++)
   {
       if (strcmp(argv[k], "-double") == 0) bDouble = true;
   }
+  // инициализировать работу с OpeGl на основе списка аргументов программы
   glutInit(&argc, const_cast<char**>(argv));
 
   // создаем Хранилище геометрических объектов
@@ -1041,6 +1045,7 @@ int main(int argc, char **argv)
   // создаем главное Fl_Glut_Window* glut_win_main
   MakeGlWindow(bDouble);
 
+  // показать форму
   form->show();
 
   /*// создать Геометрические объекты
@@ -1093,6 +1098,7 @@ int main(int argc, char **argv)
   unsigned long cursec = 0, tempsec;
   for (;;) 
   {
+    // проверить корректную работу приложения, что-то пошло не так-выход
     if (form->visible()) 
     { //проверить статус
       if (!Fl::check())
@@ -1109,11 +1115,13 @@ int main(int argc, char **argv)
     //geob_win->SetRotateZ((float)slRotZ->value());
     //geob_win->Draw();
 
+    // отрисовать графические объекты
     render();
 
     if (done)
       break; // 'exit button' была нажата
 
+    // вывести скорость рисования в фрейм/секунда
     now = Utils::getTime();
     tempsec = now / 1000;
     if (cursec != tempsec)
@@ -1124,12 +1132,14 @@ int main(int argc, char **argv)
     }
     else fps++;
 
+    // если режим моделирования, сделать шаг моделирования в соостветствии с моделью
     if(bRunModel)
       Models::Run(model, geob_win, now, beatIni);
 
     Fl::wait(0.001); // заснуть в секундах = 1 ms
   }
 
+  // цикл работы закончен, чистка
   // удалить загрузчик ini
   if (beatIni != NULL)
   {
