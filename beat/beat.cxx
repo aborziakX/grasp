@@ -44,7 +44,7 @@
 using namespace Grasp;
 
 Fl_Window *form; // главное окно/форма
-Fl_Glut_Window* glut_win_main = NULL; // окно с OpenGl
+Fl_Glut_Window* glut_win_main = NULL; // окно с OpenGL
 //Fl_Slider *slRotX, *slRotY, *slRotZ; // слайдеры
 Fl_Button *btnApply; // кнопка
 // ввод текста
@@ -85,7 +85,7 @@ void bt_dlg_done_cb(Fl_Widget* bt, void* ud); // обработчик "диал�
 void file_save_as_cb(Fl_Widget*, void*); // обработчик завершения "сохранить файл"
 void add_cube_done_cb(Fl_Widget*, void*); // обработчик завершения "создать/редактировать Куб"
 
-// чтобы диалог запускаемый по нажатию кнопки стал popup, его надо проинициировать из меню
+// чтобы диалог, запускаемый по нажатию кнопки в listbox стал popup, его надо проинициировать при создании/открытии проекта
 void PrepareBeatDialog()
 {
     if (beatIni != NULL && bt_dlg == NULL)
@@ -103,7 +103,7 @@ void help_cb(Fl_Widget *, void *)
 {
   // fl_close = "Закрыть";
   fl_message(u8"Сначала надо создать проект или открыть имеющийся.\n"
-    "Затем множественные геометрические объекты могут добавлену в сцену.\n"
+    "Затем множественные геометрические объекты могут быть добавлены в сцену.\n"
     "Для работы со сценой используйте стрелки Влево, Вправо, Вверх, Вниз, Плюс, Минус.\n"
     "В итоге можно сгенерировать ini-файл.\n"
   );
@@ -750,12 +750,13 @@ void mouseMove(int x, int y)
     if (xOrigin >= 0)
     {
         double distance, azimut, elevation;
+        // прочитать полярные координаты камеры
         geob_win->GetPolar(distance, azimut, elevation);
         // обновить направления камеры
         double fraction = 0.001;
         azimut -= (x - xOrigin) * fraction;
         elevation -= (y - yOrigin) * fraction;
-
+        // установить полярные координаты камеры
         geob_win->SetPolar(distance, azimut, elevation);
     }
 }
@@ -797,7 +798,7 @@ void changeSize(int w, int h)
 }
 
 // Функция обработки нажатия клавиш перемещения
-// Более естественно, когда по стрелке вправо сцена вращается вправо (против часовой), поэтому азимуи уменьшаем (камера смещаетсч влево)
+// Более естественно, когда по стрелке вправо сцена вращается вправо (против часовой), поэтому азимут уменьшаем (камера смещается влево)
 void processSpecialKeys(int key, int xx, int yy) 
 {
     if (done == 1) return;
@@ -809,24 +810,24 @@ void processSpecialKeys(int key, int xx, int yy)
 
     double fraction = 0.1;
     switch (key) {
-    case GLUT_KEY_LEFT:
-        azimut += fraction;
+    case GLUT_KEY_LEFT: // стрелка "влево"
+        azimut += fraction; // увеличиваем азимут
         break;
-    case GLUT_KEY_RIGHT:
-        azimut -= fraction;
+    case GLUT_KEY_RIGHT: // стрелка "вправо"
+        azimut -= fraction; // уменьшаем азимут
         break;
-    case GLUT_KEY_UP:
-        elevation -= fraction;
+    case GLUT_KEY_UP: // стрелка "вверх"
+        elevation -= fraction; // уменьшаем угол возвышения
         break;
-    case GLUT_KEY_DOWN:
-        elevation += fraction;
+    case GLUT_KEY_DOWN: // стрелка "вниз"
+        elevation += fraction; // увеличиваем угол возвышения
         break;
     }
 
     geob_win->SetPolar(distance, azimut, elevation);
 
     UpdatePosInfo();
-
+    // перерисовать
     render();
 }
 
@@ -834,29 +835,33 @@ void processSpecialKeys(int key, int xx, int yy)
 void processNormalKeys(unsigned char key, int xx, int yy) 
 {
     double distance, azimut, elevation;
-    if (key == 27) //Esc
-        exit(0);
-    else if (key == 61) //+
+    if (key == 27) //Escape
+        exit(0); // Выход из программы
+    else if (key == 61) // клавиша "+"
     {
         geob_win->GetPolar(distance, azimut, elevation);
+        // уменьшаем расстояние от камеры
         distance *= 0.9;
         geob_win->SetPolar(distance, azimut, elevation);
         UpdatePosInfo();
+        // перерисовать
         render();
     }
-    else if (key == 45) //-
+    else if (key == 45) // клавиша "-"
     {
         geob_win->GetPolar(distance, azimut, elevation);
+        // увеличиваем расстояние от камеры
         distance *= 1.1;
         geob_win->SetPolar(distance, azimut, elevation);
         UpdatePosInfo();
+        // перерисовать
         render();
     }
 }
 
 int ct_grp_w = 240; // ширина области виджетов
-int gl_w = 400; // ширина GL окна
-int gl_h = 400; // высота GL окна
+int gl_w = 800; // ширина GL окна
+int gl_h = 600; // высота GL окна
 //int rt_grp_w = 5; // область для будущего
 
 // создать главное окно и виджеты
@@ -943,18 +948,24 @@ void MakeForm(const char *name)
 }
 
 // создаем главное Fl_Glut_Window* glut_win_main
+// класс Fl_Glut_Window в FLTK, использует OpenGL Utility Toolkit (GLUT) — 
+// библиотеку утилит для приложений под OpenGL, которая в основном отвечает 
+// за системный уровень операций ввода-вывода при работе с операционной системой
 void MakeGlWindow(bool bDouble)
 {
     form->begin();
-
+    // режим RGBA - 4 байта на пиксель
     unsigned int mode = GLUT_DEPTH | GLUT_RGBA | GLUT_MULTISAMPLE;
     if (bDouble) mode |= GLUT_DOUBLE;
+    // инициализация режима
     glutInitDisplayMode(mode);
+    // позиция окна OpenGL и размеры
     glutInitWindowPosition(ct_grp_w + MARGIN2, MENUBAR_H + MARGIN);
     glutInitWindowSize(gl_w, gl_h);
     glutCreateWindow("Glut Window");
-    glut_win_main = glut_window;
+    glut_win_main = glut_window; // сохраняем ссылку на окно Fl_Glut_Window
 
+    // сохраняем ссылку glut_win_main на в geob_win (класс GeObWindow)
     geob_win->win_glut = glut_win_main;
 
     /*glut_win_main->begin(); //не работает
@@ -965,14 +976,20 @@ void MakeGlWindow(bool bDouble)
     glut_win_main->end();*/
     
     form->end();
-    form->resizable(glut_win_main);
+    form->resizable(glut_win_main); // будем передавать в glut_win_main информацию об изменении размеров главного окна
 
     // устанавливаем для него обработчики
+    // при изменении размера
     glutReshapeFunc(changeSize);
+    // события клавиатуры
     glutKeyboardFunc(processNormalKeys);
+    // специальные клавиши
     glutSpecialFunc(processSpecialKeys);
+    // нажатие кнопок"мыши"
     glutMouseFunc(mouseButton);
+    // перемещение "мыши"
     glutMotionFunc(mouseMove);
+    // для рисования
     glutDisplayFunc(render);
 }
 
@@ -1033,7 +1050,7 @@ int main(int argc, char **argv)
   {
       if (strcmp(argv[k], "-double") == 0) bDouble = true;
   }
-  // инициализировать работу с OpeGl на основе списка аргументов программы
+  // инициализировать работу с OpenGl на основе списка аргументов программы
   glutInit(&argc, const_cast<char**>(argv));
 
   // создаем Хранилище геометрических объектов

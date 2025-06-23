@@ -144,19 +144,19 @@ namespace Grasp {
   std::wstring Utils::utf8_to_wstring(const std::string& str)
   {
 #ifdef CP11
-	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv; // конвертер
 	  return myconv.from_bytes(str);
 #else
 	  if (str.empty()) {
 		  return L"";
 	  }
-	  int len = (int)str.size() + 1;
-	  setlocale(LC_CTYPE, "en_US.UTF-8");
-	  wchar_t* p = new wchar_t[len];
-	  mbstowcs(p, str.c_str(), len);
-	  std::wstring w_str(p);
-	  delete[] p;
-	  return w_str;
+	  int len = (int)str.size() + 1; // найти длину строки
+	  setlocale(LC_CTYPE, "en_US.UTF-8"); // настроить локаль под UTF-8
+	  wchar_t* p = new wchar_t[len]; // выделить память для широкой строки
+	  mbstowcs(p, str.c_str(), len); // преобразовать из UTF-8
+	  std::wstring w_str(p); // создать строку в стеке из указателя
+	  delete[] p; // очистка памяти
+	  return w_str; // вернуть широкую
 #endif
   }
 
@@ -164,27 +164,28 @@ namespace Grasp {
   std::string Utils::wstring_to_utf8(const std::wstring& str)
   {
 #ifdef CP11
-	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+	  std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv; // конвертер
 	  return myconv.to_bytes(str);
 #else
 	  if (str.empty()) {
 		  return "";
 	  }
-	  int len = (int)str.size() * 4 + 1;
-	  setlocale(LC_CTYPE, "en_US.UTF-8");
-	  char* p = new char[len];
-	  wcstombs(p, str.c_str(), len);
-	  std::string str2(p);
-	  delete[] p;
-	  return str2;
+	  int len = (int)str.size() * 4 + 1; // найти длину строки с запасом
+	  setlocale(LC_CTYPE, "en_US.UTF-8"); // настроить локаль под UTF-8
+	  char* p = new char[len]; // выделить память для строки
+	  wcstombs(p, str.c_str(), len); // преобразовать из Unicode-16
+	  std::string str2(p); // создать строку в стеке из указателя
+	  delete[] p; // очистка памяти
+	  return str2; // вернуть строку
 #endif
   }
 
-  // сформировать вектор из указателей на string
+  // из char* msg, разделителя char sepa, сформировать vec - вектор из указателей на string
+  // данные в msg помогуть быть изменены!
   void Utils::split2vector(char* msg, char sepa, std::vector<std::string*>& vec, bool bCleanByStart)
   {
 	  if (bCleanByStart)
-	  {
+	  { // очистить ранее созданный вектор из указателей на строки
 		  for (int k = 0; k < vec.size(); k++)
 		  {
 			  delete vec[k];
@@ -193,19 +194,19 @@ namespace Grasp {
 	  }
 	  if (msg == NULL || strlen(msg) == 0)
 		  return;
-	  char ss[2] = { sepa, 0 };
+	  char ss[2] = { sepa, 0 }; // конструкция для поиска разделителя
 	  char * p = msg, * p_2;
 	  while (true)
 	  {
-		  p_2 = strstr(p, ss);
+		  p_2 = strstr(p, ss); // найти разделитель
 		  if (p_2 == NULL)
-		  {
+		  {	// не найден
 			  vec.push_back(new std::string(p));
 			  break;
 		  }
 		  else
 		  {
-			  *p_2 = 0;
+			  *p_2 = 0; // заменить разделить на 0
 			  vec.push_back(new std::string(p));
 			  p = p_2 + 1;
 		  }

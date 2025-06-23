@@ -9,7 +9,7 @@ Cyl::~Cyl() {
   Clear();
 }
 
-// название
+// название: Цилиндр, id index
 void Cyl::GetName(char buf[33])
 {
     int sz = 33;// sizeof(buf)=8;
@@ -22,7 +22,7 @@ void Cyl::Init() {
 
     double x0, y0, z0 = 0.0, x1, y1, z1 = 2.0 * radius, size = height;
     Vec3 v0, v1, v2, v3;
-    double angle_step = (MY_2PI / nSide);
+    double angle_step = (MY_2PI / nSide); // шаг вращения
     double angle;
     double dH = size;
 
