@@ -860,8 +860,8 @@ void processNormalKeys(unsigned char key, int xx, int yy)
 }
 
 int ct_grp_w = 240; // ширина области виджетов
-int gl_w = 800; // ширина GL окна
-int gl_h = 600; // высота GL окна
+int gl_w = 600; // ширина GL окна
+int gl_h = 450; // высота GL окна
 //int rt_grp_w = 5; // область для будущего
 
 // создать главное окно и виджеты
