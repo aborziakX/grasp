@@ -1,0 +1,11 @@
+{
+  "number": 5.555,
+  "boolean": true,
+  "string": "stroka",
+  "nothing": null,  
+  "list": [0, 1, 2, 3, 4],
+  "Calendar": {
+    "Day": "Mo",
+    "value": 25
+  }
+}
